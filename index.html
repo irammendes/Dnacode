@@ -1,0 +1,938 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Analisador Genético Avançado</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://d3js.org/d3.v7.min.js"></script>
+    <style>
+        :root {
+            --dna-blue: #3498db;
+            --dna-dark: #2c3e50;
+            --dna-green: #27ae60;
+            --dna-red: #e74c3c;
+            --dna-yellow: #f39c12;
+            --dna-light: #ecf0f1;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f8f9fa;
+        }
+        
+        .dna-card {
+            border-radius: 10px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+            margin-bottom: 2rem;
+            border: none;
+        }
+        
+        .dna-header {
+            background-color: var(--dna-dark);
+            color: white;
+            border-radius: 10px 10px 0 0 !important;
+        }
+        
+        .sequence-input {
+            min-height: 150px;
+            font-family: monospace;
+            border: 2px solid var(--dna-blue);
+        }
+        
+        .dna-btn {
+            background-color: var(--dna-blue);
+            border: none;
+            transition: all 0.3s;
+        }
+        
+        .dna-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+            background-color: #2980b9;
+        }
+        
+        .dna-helix {
+            background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" preserveAspectRatio="none"><path d="M50,0 Q75,25 50,50 Q25,75 50,100" stroke="%233498db" fill="none" stroke-width="0.5"/><path d="M50,0 Q25,25 50,50 Q75,75 50,100" stroke="%23e74c3c" fill="none" stroke-width="0.5"/></svg>');
+            opacity: 0.05;
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            z-index: 0;
+        }
+        
+        .haplogroup-card {
+            border-left: 4px solid var(--dna-blue);
+            transition: all 0.3s;
+        }
+        
+        .haplogroup-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 6px 15px rgba(0,0,0,0.1);
+        }
+        
+        .match-card {
+            border-left: 4px solid var(--dna-green);
+        }
+        
+        .protein-display {
+            font-family: monospace;
+            letter-spacing: 2px;
+            background-color: var(--dna-dark);
+            color: white;
+            padding: 1rem;
+            border-radius: 8px;
+            overflow-x: auto;
+        }
+        
+        .base-count-badge {
+            font-size: 0.8rem;
+            margin-right: 5px;
+        }
+        
+        .base-A { background-color: #4CAF50; }
+        .base-T { background-color: #F44336; }
+        .base-C { background-color: #2196F3; }
+        .base-G { background-color: #FFC107; color: #000; }
+        
+        @media (max-width: 768px) {
+            .analysis-section {
+                padding: 1rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container py-5">
+        <div class="dna-card card mb-5">
+            <div class="card-header dna-header">
+                <h1 class="text-center mb-0"><i class="bi bi-dna"></i> Analisador Genético Completo</h1>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-6">
+                        <h3 class="mb-3"><i class="bi bi-keyboard"></i> Inserir Sequência</h3>
+                        <textarea id="dnaSequence" class="form-control sequence-input mb-3" placeholder="ATCGATCGATCG..."></textarea>
+                        <div class="d-flex justify-content-between mb-3">
+                            <button id="clearBtn" class="btn btn-outline-secondary">Limpar</button>
+                            <button id="exampleBtn" class="btn btn-outline-primary">Exemplo</button>
+                        </div>
+                        <button id="analyzeBtn" class="btn dna-btn btn-lg w-100">Analisar DNA</button>
+                    </div>
+                    <div class="col-md-6">
+                        <h3 class="mb-3"><i class="bi bi-file-earmark-arrow-up"></i> Upload de Arquivo</h3>
+                        <div class="mb-3">
+                            <input type="file" id="dnaFile" class="form-control" accept=".txt,.csv,.fasta,.fa">
+                            <div class="form-text">Formatos suportados: .txt, .csv, .fasta</div>
+                        </div>
+                        <div class="mb-3">
+                            <div class="progress">
+                                <div id="progressBar" class="progress-bar progress-bar-striped progress-bar-animated" style="width: 0%"></div>
+                            </div>
+                            <small id="progressText" class="text-muted">Aguardando arquivo...</small>
+                        </div>
+                        <button id="uploadBtn" class="btn dna-btn btn-lg w-100">Analisar Arquivo</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div id="resultsContainer" class="dna-card card" style="display: none;">
+            <div class="card-header bg-white">
+                <h2 class="mb-0"><i class="bi bi-graph-up"></i> Resultados da Análise</h2>
+            </div>
+            <div class="card-body">
+                <div id="loadingSpinner" class="text-center py-5">
+                    <div class="spinner-border text-primary" style="width: 3rem; height: 3rem;" role="status">
+                        <span class="visually-hidden">Carregando...</span>
+                    </div>
+                    <p class="mt-3">Analisando sequências genéticas...</p>
+                </div>
+                
+                <div id="analysisResults" style="display: none;">
+                    <div class="alert alert-info">
+                        <i class="bi bi-info-circle"></i> Esta é uma ferramenta de demonstração. Os resultados são simulados para fins educacionais.
+                    </div>
+                    
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="dna-card card mb-4">
+                                <div class="card-header">
+                                    <h3><i class="bi bi-clipboard-data"></i> Informações Básicas</h3>
+                                </div>
+                                <div class="card-body">
+                                    <div class="row">
+                                        <div class="col-6 mb-3">
+                                            <div class="haplogroup-card p-3 rounded">
+                                                <h5 class="text-muted">Comprimento</h5>
+                                                <h2 id="sequenceLength" class="text-primary">0</h2>
+                                            </div>
+                                        </div>
+                                        <div class="col-6 mb-3">
+                                            <div class="haplogroup-card p-3 rounded">
+                                                <h5 class="text-muted">Conteúdo GC</h5>
+                                                <h2 id="gcContent" class="text-primary">0%</h2>
+                                            </div>
+                                        </div>
+                                        <div class="col-6 mb-3">
+                                            <div class="haplogroup-card p-3 rounded">
+                                                <h5 class="text-muted">Códons</h5>
+                                                <h2 id="codonCount" class="text-primary">0</h2>
+                                            </div>
+                                        </div>
+                                        <div class="col-6 mb-3">
+                                            <div class="haplogroup-card p-3 rounded">
+                                                <h5 class="text-muted">Aminoácidos</h5>
+                                                <h2 id="aminoAcidCount" class="text-primary">0</h2>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="mt-3">
+                                        <h5>Contagem de Bases</h5>
+                                        <div id="baseCounts" class="d-flex flex-wrap">
+                                            <!-- Base counts will be added here -->
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="col-md-6">
+                            <div class="dna-card card mb-4">
+                                <div class="card-header">
+                                    <h3><i class="bi bi-globe"></i> Ancestralidade</h3>
+                                </div>
+                                <div class="card-body">
+                                    <div class="position-relative" style="height: 300px;">
+                                        <div class="dna-helix"></div>
+                                        <canvas id="ancestryChart"></canvas>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="row mt-4">
+                        <div class="col-md-6">
+                            <div class="dna-card card mb-4">
+                                <div class="card-header">
+                                    <h3><i class="bi bi-gender-male"></i> Linha Paterna (Y-DNA)</h3>
+                                </div>
+                                <div class="card-body">
+                                    <div class="haplogroup-card p-4 mb-3 rounded">
+                                        <h4 id="paternalHaplogroup" class="text-primary">-</h4>
+                                        <p id="paternalOrigin" class="mb-0">Origem não determinada</p>
+                                    </div>
+                                    <div id="paternalMutations" class="mt-3">
+                                        <p class="text-muted">Nenhuma mutação significativa identificada</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="col-md-6">
+                            <div class="dna-card card mb-4">
+                                <div class="card-header">
+                                    <h3><i class="bi bi-gender-female"></i> Linha Materna (mtDNA)</h3>
+                                </div>
+                                <div class="card-body">
+                                    <div class="haplogroup-card p-4 mb-3 rounded">
+                                        <h4 id="maternalHaplogroup" class="text-primary">-</h4>
+                                        <p id="maternalOrigin" class="mb-0">Origem não determinada</p>
+                                    </div>
+                                    <div id="maternalMutations" class="mt-3">
+                                        <p class="text-muted">Nenhuma mutação significativa identificada</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="dna-card card mb-4">
+                        <div class="card-header">
+                            <h3><i class="bi bi-people"></i> Parentes Genéticos</h3>
+                        </div>
+                        <div class="card-body">
+                            <div id="relativeMatches">
+                                <p class="text-muted">Nenhum parente genético identificado</p>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="dna-card card">
+                        <div class="card-header">
+                            <h3><i class="bi bi-braces"></i> Tradução Proteica</h3>
+                        </div>
+                        <div class="card-body">
+                            <div class="protein-display">
+                                <pre id="proteinSequence" class="mb-0">A sequência proteica será exibida aqui</pre>
+                            </div>
+                            <div class="mt-3">
+                                <canvas id="proteinChart" height="100"></canvas>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div id="errorContainer" class="alert alert-danger mt-4" style="display: none;"></div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        // Banco de dados de referência
+        const dnaDatabase = {
+            paternalHaplogroups: {
+                'R1a': { origin: 'Europa Oriental e Ásia Central', age: '18,000 anos', mutations: ['M420', 'SRY1532.2'] },
+                'R1b': { origin: 'Europa Ocidental', age: '25,000 anos', mutations: ['M343', 'P25'] },
+                'I1': { origin: 'Escandinávia', age: '5,000 anos', mutations: ['M253', 'DF29'] },
+                'I2': { origin: 'Balcãs', age: '15,000 anos', mutations: ['M438', 'P215'] },
+                'J1': { origin: 'Oriente Médio', age: '10,000 anos', mutations: ['M267', 'P58'] },
+                'J2': { origin: 'Mediterrâneo', age: '12,000 anos', mutations: ['M172', 'M410'] },
+                'E1b1b': { origin: 'Norte da África', age: '20,000 anos', mutations: ['M215', 'M35'] },
+                'G2a': { origin: 'Cáucaso', age: '15,000 anos', mutations: ['P15', 'M201'] },
+                'N': { origin: 'Sibéria', age: '12,000 anos', mutations: ['M231', 'LLY22g'] },
+                'Q': { origin: 'Américas', age: '15,000 anos', mutations: ['M242', 'MEH2'] }
+            },
+            maternalHaplogroups: {
+                'H': { origin: 'Europa', age: '20,000 anos', mutations: ['7028C', '14766C'] },
+                'U': { origin: 'Europa Ocidental', age: '50,000 anos', mutations: ['12308G', '12372A'] },
+                'K': { origin: 'Oriente Médio', age: '12,000 anos', mutations: ['16224C', '16311C'] },
+                'T': { origin: 'Mediterrâneo', age: '17,000 anos', mutations: ['709A', '1888G'] },
+                'J': { origin: 'Oriente Médio', age: '25,000 anos', mutations: ['4216C', '12612G'] },
+                'V': { origin: 'Europa do Norte', age: '15,000 anos', mutations: ['4580G', '15904T'] },
+                'L': { origin: 'África', age: '150,000 anos', mutations: ['3594C', '10810C'] },
+                'A': { origin: 'Américas', age: '20,000 anos', mutations: ['663G', '8794C'] },
+                'B': { origin: 'Ásia Oriental', age: '50,000 anos', mutations: ['8281-8289d', '16189C'] },
+                'C': { origin: 'Sibéria', age: '20,000 anos', mutations: ['14318C', '16327T'] },
+                'D': { origin: 'Ásia Oriental', age: '40,000 anos', mutations: ['5178A', '8414T'] }
+            },
+            ethnicRegions: {
+                'EUR': { name: 'Europeu', color: '#3498db' },
+                'AFR': { name: 'Africano', color: '#e74c3c' },
+                'EAS': { name: 'Asiático Oriental', color: '#2ecc71' },
+                'SAS': { name: 'Asiático Meridional', color: '#f39c12' },
+                'AMR': { name: 'Americano', color: '#9b59b6' },
+                'OCE': { name: 'Oceania', color: '#1abc9c' },
+                'MDE': { name: 'Oriente Médio', color: '#e67e22' }
+            }
+        };
+
+        // Elementos do DOM
+        const analyzeBtn = document.getElementById('analyzeBtn');
+        const uploadBtn = document.getElementById('uploadBtn');
+        const clearBtn = document.getElementById('clearBtn');
+        const exampleBtn = document.getElementById('exampleBtn');
+        const dnaSequenceInput = document.getElementById('dnaSequence');
+        const dnaFileInput = document.getElementById('dnaFile');
+        const resultsContainer = document.getElementById('resultsContainer');
+        const analysisResults = document.getElementById('analysisResults');
+        const loadingSpinner = document.getElementById('loadingSpinner');
+        const errorContainer = document.getElementById('errorContainer');
+        const progressBar = document.getElementById('progressBar');
+        const progressText = document.getElementById('progressText');
+
+        // Event Listeners
+        analyzeBtn.addEventListener('click', analyzeManualSequence);
+        uploadBtn.addEventListener('click', processFile);
+        clearBtn.addEventListener('click', clearInput);
+        exampleBtn.addEventListener('click', loadExample);
+
+        // Função principal para análise manual
+        function analyzeManualSequence() {
+            const dnaInput = dnaSequenceInput.value.trim().toUpperCase();
+            
+            if (!dnaInput) {
+                showError('Por favor, insira uma sequência de DNA.');
+                return;
+            }
+            
+            if (!isValidDnaSequence(dnaInput)) {
+                showError('Sequência inválida. Use apenas bases A, T, C e G.');
+                return;
+            }
+            
+            startAnalysis();
+            setTimeout(() => {
+                try {
+                    const analysisResults = performAnalysis(dnaInput);
+                    displayResults(analysisResults);
+                } catch (error) {
+                    showError('Erro durante a análise: ' + error.message);
+                } finally {
+                    endAnalysis();
+                }
+            }, 500);
+        }
+
+        // Função para processar arquivo
+        async function processFile() {
+            if (!dnaFileInput.files.length) {
+                showError('Por favor, selecione um arquivo.');
+                return;
+            }
+            
+            const file = dnaFileInput.files[0];
+            updateProgress(0, 'Iniciando processamento...');
+            startAnalysis();
+            
+            try {
+                // 1. Ler o arquivo
+                updateProgress(10, 'Lendo arquivo...');
+                const fileContent = await readTextFile(file);
+                
+                // 2. Processar conteúdo
+                updateProgress(30, 'Processando conteúdo...');
+                let sequences = [];
+                
+                if (file.name.endsWith('.csv') || (typeof fileContent === 'string' && fileContent.includes(','))) {
+                    sequences = parseCsvContent(fileContent);
+                } else {
+                    sequences = parseTextContent(fileContent);
+                }
+                
+                if (sequences.length === 0) {
+                    showError('Nenhuma sequência válida encontrada no arquivo.');
+                    return;
+                }
+                
+                // 3. Analisar sequências
+                updateProgress(70, 'Analisando DNA...');
+                const analysisResults = sequences.map(seq => performAnalysis(seq));
+                
+                // 4. Exibir resultados
+                updateProgress(90, 'Gerando relatório...');
+                displayResults(analysisResults[0]); // Mostra apenas o primeiro resultado para simplificar
+                
+            } catch (error) {
+                showError('Erro no processamento: ' + error.message);
+            } finally {
+                updateProgress(100, 'Completo!');
+                setTimeout(() => endAnalysis(), 500);
+            }
+        }
+
+        // Função para realizar a análise completa
+        function performAnalysis(dnaSequence) {
+            // 1. Análise básica
+            const baseCount = countBases(dnaSequence);
+            const gcContent = calculateGcContent(dnaSequence);
+            const rnaSequence = transcribeToRna(dnaSequence);
+            const proteinSequence = translateToProtein(rnaSequence);
+            
+            // 2. Determinar haplogrupos
+            const paternalHaplogroup = determinePaternalHaplogroup(dnaSequence);
+            const maternalHaplogroup = determineMaternalHaplogroup(dnaSequence);
+            
+            // 3. Análise de ancestralidade
+            const ancestry = analyzeAncestry(dnaSequence);
+            
+            // 4. Buscar parentes
+            const relatives = findGeneticRelatives(dnaSequence);
+            
+            return {
+                sequence: dnaSequence,
+                length: dnaSequence.length,
+                baseCount,
+                gcContent,
+                rna: rnaSequence,
+                protein: proteinSequence,
+                paternalHaplogroup,
+                maternalHaplogroup,
+                ancestry,
+                relatives
+            };
+        }
+
+        // Funções auxiliares de análise
+        function isValidDnaSequence(sequence) {
+            return /^[ATCG]+$/.test(sequence);
+        }
+
+        function countBases(sequence) {
+            return {
+                'A': (sequence.match(/A/g) || []).length,
+                'T': (sequence.match(/T/g) || []).length,
+                'C': (sequence.match(/C/g) || []).length,
+                'G': (sequence.match(/G/g) || []).length
+            };
+        }
+
+        function calculateGcContent(sequence) {
+            const gcCount = (sequence.match(/G/g) || []).length + (sequence.match(/C/g) || []).length;
+            return ((gcCount / sequence.length) * 100).toFixed(2);
+        }
+
+        function transcribeToRna(dna) {
+            return dna.replace(/T/g, 'U');
+        }
+
+        function translateToProtein(rna) {
+            const codonTable = {
+                'UUU': 'F', 'UUC': 'F', 'UUA': 'L', 'UUG': 'L',
+                'CUU': 'L', 'CUC': 'L', 'CUA': 'L', 'CUG': 'L',
+                'AUU': 'I', 'AUC': 'I', 'AUA': 'I', 'AUG': 'M',
+                'GUU': 'V', 'GUC': 'V', 'GUA': 'V', 'GUG': 'V',
+                'UCU': 'S', 'UCC': 'S', 'UCA': 'S', 'UCG': 'S',
+                'CCU': 'P', 'CCC': 'P', 'CCA': 'P', 'CCG': 'P',
+                'ACU': 'T', 'ACC': 'T', 'ACA': 'T', 'ACG': 'T',
+                'GCU': 'A', 'GCC': 'A', 'GCA': 'A', 'GCG': 'A',
+                'UAU': 'Y', 'UAC': 'Y', 'UAA': '*', 'UAG': '*',
+                'CAU': 'H', 'CAC': 'H', 'CAA': 'Q', 'CAG': 'Q',
+                'AAU': 'N', 'AAC': 'N', 'AAA': 'K', 'AAG': 'K',
+                'GAU': 'D', 'GAC': 'D', 'GAA': 'E', 'GAG': 'E',
+                'UGU': 'C', 'UGC': 'C', 'UGA': '*', 'UGG': 'W',
+                'CGU': 'R', 'CGC': 'R', 'CGA': 'R', 'CGG': 'R',
+                'AGU': 'S', 'AGC': 'S', 'AGA': 'R', 'AGG': 'R',
+                'GGU': 'G', 'GGC': 'G', 'GGA': 'G', 'GGG': 'G'
+            };
+            
+            let protein = '';
+            for (let i = 0; i < rna.length - 2; i += 3) {
+                const codon = rna.substr(i, 3);
+                protein += codonTable[codon] || '?';
+            }
+            return protein;
+        }
+
+        function determinePaternalHaplogroup(dna) {
+            // Simulação - na prática usaria marcadores específicos
+            const markers = {
+                'R1a': dna.includes('CTAGCTA'),
+                'R1b': dna.includes('GATACGT'),
+                'I1': dna.includes('TATACGC'),
+                'J1': dna.includes('CGATAGC'),
+                'J2': dna.includes('TGCATGC'),
+                'E1b1b': dna.includes('GCTAGCT'),
+                'G2a': dna.includes('TAGCTAG'),
+                'N': dna.includes('GATCGAT'),
+                'Q': dna.includes('CTAGCTA')
+            };
+            
+            for (const [hg, present] of Object.entries(markers)) {
+                if (present) return {
+                    haplogroup: hg,
+                    ...dnaDatabase.paternalHaplogroups[hg]
+                };
+            }
+            
+            // Se nenhum marcador for encontrado, seleciona aleatoriamente
+            const groups = Object.keys(dnaDatabase.paternalHaplogroups);
+            const randomGroup = groups[Math.floor(Math.random() * groups.length)];
+            
+            return {
+                haplogroup: randomGroup,
+                ...dnaDatabase.paternalHaplogroups[randomGroup]
+            };
+        }
+
+        function determineMaternalHaplogroup(dna) {
+            // Simulação - na prática usaria marcadores específicos
+            const markers = {
+                'H': dna.includes('ATGCGAT'),
+                'U': dna.includes('GCGATAC'),
+                'K': dna.includes('TACGTAC'),
+                'T': dna.includes('CGTACGT'),
+                'J': dna.includes('GTACGTG'),
+                'V': dna.includes('ACGTACG'),
+                'L': dna.includes('TACGTAC'),
+                'A': dna.includes('CGATAGC'),
+                'B': dna.includes('GATCGAT'),
+                'C': dna.includes('ATCGATC'),
+                'D': dna.includes('TCGATCG')
+            };
+            
+            for (const [hg, present] of Object.entries(markers)) {
+                if (present) return {
+                    haplogroup: hg,
+                    ...dnaDatabase.maternalHaplogroups[hg]
+                };
+            }
+            
+            // Se nenhum marcador for encontrado, seleciona aleatoriamente
+            const groups = Object.keys(dnaDatabase.maternalHaplogroups);
+            const randomGroup = groups[Math.floor(Math.random() * groups.length)];
+            
+            return {
+                haplogroup: randomGroup,
+                ...dnaDatabase.maternalHaplogroups[randomGroup]
+            };
+        }
+
+        function analyzeAncestry(dna) {
+            // Simulação baseada em padrões de SNPs
+            const patterns = {
+                'EUR': (dna.match(/ATCG/g) || []).length,
+                'AFR': (dna.match(/GCTA/g) || []).length,
+                'EAS': (dna.match(/CGAT/g) || []).length,
+                'SAS': (dna.match(/GATC/g) || []).length,
+                'AMR': (dna.match(/TAGC/g) || []).length,
+                'OCE': (dna.match(/CTAG/g) || []).length,
+                'MDE': (dna.match(/AGCT/g) || []).length
+            };
+            
+            const total = Object.values(patterns).reduce((a, b) => a + b, 1);
+            const result = {};
+            
+            for (const [region, count] of Object.entries(patterns)) {
+                const percentage = ((count / total) * 100).toFixed(1);
+                result[region] = {
+                    percentage,
+                    ...dnaDatabase.ethnicRegions[region]
+                };
+            }
+            
+            return result;
+        }
+
+        function findGeneticRelatives(dna) {
+            // Simulação de correspondência genética
+            const relatives = [
+                {
+                    id: 'REL001',
+                    name: 'João Silva',
+                    relation: 'Possível primo de 3º grau',
+                    match: Math.floor(Math.random() * 30) + 70,
+                    sharedSegments: Math.floor(Math.random() * 10) + 5,
+                    commonAncestors: ['Bisavós em Portugal (1850-1900)']
+                },
+                {
+                    id: 'REL002',
+                    name: 'Maria Oliveira',
+                    relation: 'Possível parente distante',
+                    match: Math.floor(Math.random() * 30) + 40,
+                    sharedSegments: Math.floor(Math.random() * 5) + 3,
+                    commonAncestors: ['Região Norte de Portugal']
+                },
+                {
+                    id: 'REL003',
+                    name: 'Carlos Mendes',
+                    relation: 'Possível 4º primo',
+                    match: Math.floor(Math.random() * 20) + 50,
+                    sharedSegments: Math.floor(Math.random() * 7) + 4,
+                    commonAncestors: ['Bisavós na Itália']
+                }
+            ].sort((a, b) => b.match - a.match);
+            
+            // Apenas retorna parentes se o match for > 30%
+            return relatives.filter(r => r.match > 30);
+        }
+
+        // Funções para exibir resultados
+        function displayResults(results) {
+            // 1. Informações básicas
+            document.getElementById('sequenceLength').textContent = results.length.toLocaleString();
+            document.getElementById('gcContent').textContent = results.gcContent + '%';
+            document.getElementById('codonCount').textContent = Math.floor(results.rna.length / 3).toLocaleString();
+            document.getElementById('aminoAcidCount').textContent = results.protein.length.toLocaleString();
+            document.getElementById('proteinSequence').textContent = results.protein;
+            
+            // Contagem de bases
+            const baseCountsContainer = document.getElementById('baseCounts');
+            baseCountsContainer.innerHTML = '';
+            
+            for (const [base, count] of Object.entries(results.baseCount)) {
+                const badge = document.createElement('span');
+                badge.className = `base-count-badge badge rounded-pill base-${base}`;
+                badge.textContent = `${base}: ${count.toLocaleString()}`;
+                baseCountsContainer.appendChild(badge);
+            }
+            
+            // 2. Haplogrupos
+            document.getElementById('paternalHaplogroup').textContent = results.paternalHaplogroup.haplogroup;
+            document.getElementById('paternalOrigin').textContent = 
+                `${results.paternalHaplogroup.origin} (${results.paternalHaplogroup.age})`;
+            
+            document.getElementById('maternalHaplogroup').textContent = results.maternalHaplogroup.haplogroup;
+            document.getElementById('maternalOrigin').textContent = 
+                `${results.maternalHaplogroup.origin} (${results.maternalHaplogroup.age})`;
+            
+            // Mutações
+            renderMutations('paternalMutations', results.paternalHaplogroup.mutations || []);
+            renderMutations('maternalMutations', results.maternalHaplogroup.mutations || []);
+            
+            // 3. Ancestralidade
+            renderAncestryChart(results.ancestry);
+            
+            // 4. Parentes
+            renderRelativeMatches(results.relatives);
+            
+            // 5. Proteína
+            renderProteinChart(results.protein);
+        }
+
+        function renderMutations(containerId, mutations) {
+            const container = document.getElementById(containerId);
+            container.innerHTML = '';
+            
+            if (mutations.length === 0) {
+                container.innerHTML = '<p class="text-muted">Nenhuma mutação significativa identificada</p>';
+                return;
+            }
+            
+            const list = document.createElement('ul');
+            list.className = 'list-group';
+            
+            mutations.forEach(mutation => {
+                const item = document.createElement('li');
+                item.className = 'list-group-item';
+                item.textContent = mutation;
+                list.appendChild(item);
+            });
+            
+            container.appendChild(list);
+        }
+
+        function renderAncestryChart(ancestryData) {
+            const ctx = document.getElementById('ancestryChart').getContext('2d');
+            const labels = [];
+            const data = [];
+            const backgroundColors = [];
+            
+            for (const [region, info] of Object.entries(ancestryData)) {
+                if (parseFloat(info.percentage) > 0) {
+                    labels.push(info.name);
+                    data.push(info.percentage);
+                    backgroundColors.push(info.color);
+                }
+            }
+            
+            new Chart(ctx, {
+                type: 'doughnut',
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        data: data,
+                        backgroundColor: backgroundColors,
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            position: 'right'
+                        },
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    return `${context.label}: ${context.raw}%`;
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+        }
+
+        function renderRelativeMatches(relatives) {
+            const container = document.getElementById('relativeMatches');
+            container.innerHTML = '';
+            
+            if (relatives.length === 0) {
+                container.innerHTML = '<p class="text-muted">Nenhum parente genético identificado</p>';
+                return;
+            }
+            
+            relatives.forEach(relative => {
+                const matchHTML = `
+                    <div class="match-card card mb-3">
+                        <div class="card-body">
+                            <div class="row align-items-center">
+                                <div class="col-md-3 text-center">
+                                    <div class="position-relative" style="width: 100px; height: 100px; margin: 0 auto;">
+                                        <svg width="100" height="100" viewBox="0 0 36 36" class="circular-chart">
+                                            <path class="circle-bg"
+                                                d="M18 2.0845
+                                                    a 15.9155 15.9155 0 0 1 0 31.831
+                                                    a 15.9155 15.9155 0 0 1 0 -31.831"
+                                                fill="none"
+                                                stroke="#eee"
+                                                stroke-width="3"/>
+                                            <path class="circle"
+                                                d="M18 2.0845
+                                                    a 15.9155 15.9155 0 0 1 0 31.831
+                                                    a 15.9155 15.9155 0 0 1 0 -31.831"
+                                                fill="none"
+                                                stroke="#2ecc71"
+                                                stroke-width="3"
+                                                stroke-dasharray="${relative.match}, 100"/>
+                                            <text x="18" y="20" class="percentage" text-anchor="middle" fill="#2c3e50" style="font-weight: bold;">${relative.match}%</text>
+                                            <text x="18" y="25" class="relation" text-anchor="middle" fill="#7f8c8d" style="font-size: 0.2em;">match</text>
+                                        </svg>
+                                    </div>
+                                </div>
+                                <div class="col-md-9">
+                                    <h4>${relative.name} <small class="text-muted">${relative.relation}</small></h4>
+                                    <p class="mb-1"><strong>Segmentos compartilhados:</strong> ${relative.sharedSegments}</p>
+                                    <p class="mb-0"><strong>Antepassados em comum:</strong> ${relative.commonAncestors.join(', ')}</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                `;
+                container.insertAdjacentHTML('beforeend', matchHTML);
+            });
+        }
+
+        function renderProteinChart(proteinSequence) {
+            const aminoAcids = {};
+            for (const aa of proteinSequence) {
+                aminoAcids[aa] = (aminoAcids[aa] || 0) + 1;
+            }
+            
+            const ctx = document.getElementById('proteinChart').getContext('2d');
+            const labels = Object.keys(aminoAcids).sort();
+            const data = labels.map(aa => aminoAcids[aa]);
+            
+            new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        label: 'Frequência de Aminoácidos',
+                        data: data,
+                        backgroundColor: labels.map(aa => {
+                            // Cores diferentes para cada aminoácido
+                            const colors = [
+                                '#3498db', '#e74c3c', '#2ecc71', '#f39c12', '#9b59b6',
+                                '#1abc9c', '#d35400', '#34495e', '#16a085', '#c0392b',
+                                '#8e44ad', '#27ae60', '#e67e22', '#7f8c8d', '#2980b9',
+                                '#f1c40f', '#e74c3c', '#2c3e50', '#1abc9c', '#d35400'
+                            ];
+                            return colors[labels.indexOf(aa) % colors.length];
+                        })
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            title: {
+                                display: true,
+                                text: 'Quantidade'
+                            }
+                        },
+                        x: {
+                            title: {
+                                display: true,
+                                text: 'Aminoácidos'
+                            }
+                        }
+                    }
+                }
+            });
+        }
+
+        // Funções auxiliares para processamento de arquivos
+        function readTextFile(file) {
+            return new Promise((resolve, reject) => {
+                const reader = new FileReader();
+                reader.onload = (e) => resolve(e.target.result);
+                reader.onerror = () => reject(new Error('Erro ao ler arquivo'));
+                reader.readAsText(file);
+            });
+        }
+
+        function parseCsvContent(content) {
+            const lines = content.split('\n');
+            const sequences = [];
+            
+            // Tenta encontrar a coluna com sequências
+            const headers = lines[0].split(',');
+            let seqIndex = headers.findIndex(h => 
+                h.toLowerCase().includes('seq') || 
+                h.toLowerCase().includes('dna') ||
+                h.toLowerCase().includes('gene')
+            );
+            
+            if (seqIndex === -1) seqIndex = 1; // Assume que é a segunda coluna
+            
+            for (let i = 1; i < lines.length; i++) {
+                const cells = lines[i].split(',');
+                if (cells.length > seqIndex) {
+                    const seq = cells[seqIndex].trim().toUpperCase().replace(/[^ATCG]/g, '');
+                    if (seq.length >= 10) {
+                        sequences.push(seq);
+                    }
+                }
+            }
+            
+            return sequences;
+        }
+
+        function parseTextContent(content) {
+            // Remove cabeçalhos FASTA se existirem
+            const fastaHeaderRegex = /^>.*$/gm;
+            const cleanedContent = content.replace(fastaHeaderRegex, '');
+            
+            return cleanedContent.split('\n')
+                .map(line => line.trim().toUpperCase().replace(/[^ATCG]/g, ''))
+                .filter(seq => seq.length >= 10);
+        }
+
+        // Funções de UI
+        function startAnalysis() {
+            loadingSpinner.style.display = 'block';
+            analysisResults.style.display = 'none';
+            errorContainer.style.display = 'none';
+            resultsContainer.style.display = 'block';
+        }
+
+        function endAnalysis() {
+            loadingSpinner.style.display = 'none';
+            analysisResults.style.display = 'block';
+        }
+
+        function showError(message) {
+            errorContainer.style.display = 'block';
+            errorContainer.innerHTML = `
+                <h4><i class="bi bi-exclamation-triangle"></i> Erro</h4>
+                <p>${message}</p>
+                <p class="mb-0">Verifique sua entrada e tente novamente.</p>
+            `;
+            endAnalysis();
+        }
+
+        function updateProgress(percent, message) {
+            progressBar.style.width = percent + '%';
+            progressBar.setAttribute('aria-valuenow', percent);
+            progressText.textContent = message;
+            
+            if (percent >= 100) {
+                setTimeout(() => {
+                    progressBar.classList.remove('progress-bar-striped', 'progress-bar-animated');
+                }, 500);
+            } else {
+                progressBar.classList.add('progress-bar-striped', 'progress-bar-animated');
+            }
+        }
+
+        function clearInput() {
+            dnaSequenceInput.value = '';
+            dnaFileInput.value = '';
+            resultsContainer.style.display = 'none';
+            errorContainer.style.display = 'none';
+            updateProgress(0, 'Aguardando arquivo...');
+        }
+
+        function loadExample() {
+            const exampleSequence = 'ATCGATCGATCGATCGATCGATCGATCGATCG' + 
+                                   'GATCGATCGATCGATCGATCGATCGATCGATC' + 
+                                   'CGATCGATCGATCGATCGATCGATCGATCGAT';
+            dnaSequenceInput.value = exampleSequence;
+        }
+
+        // Inicialização
+        document.addEventListener('DOMContentLoaded', () => {
+            // Configuração inicial
+            clearInput();
+        });
+    </script>
+</body>
+</html>
