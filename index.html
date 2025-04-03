@@ -97,6 +97,11 @@
         .base-C { background-color: #2196F3; }
         .base-G { background-color: #FFC107; color: #000; }
         
+        .snp-marker {
+            cursor: help;
+            border-bottom: 1px dotted #666;
+        }
+        
         @media (max-width: 768px) {
             .analysis-section {
                 padding: 1rem;
@@ -195,6 +200,8 @@
                                             <!-- Base counts will be added here -->
                                         </div>
                                     </div>
+                                    <div id="snpsContainer"></div>
+                                    <div id="diseaseContainer"></div>
                                 </div>
                             </div>
                         </div>
@@ -261,7 +268,7 @@
                         </div>
                     </div>
                     
-                    <div class="dna-card card">
+                    <div class="dna-card card mb-4">
                         <div class="card-header">
                             <h3><i class="bi bi-braces"></i> Tradução Proteica</h3>
                         </div>
@@ -274,6 +281,41 @@
                             </div>
                         </div>
                     </div>
+                    
+                    <div class="dna-card card mb-4">
+                        <div class="card-header">
+                            <h3><i class="bi bi-family"></i> Teste de Paternidade/Maternidade</h3>
+                        </div>
+                        <div class="card-body">
+                            <div class="row mb-3">
+                                <div class="col-md-6">
+                                    <h5>DNA da Criança</h5>
+                                    <textarea id="childDna" class="form-control sequence-input mb-2" placeholder="Sequência da criança"></textarea>
+                                </div>
+                                <div class="col-md-6">
+                                    <h5>DNA do Pai/Mãe</h5>
+                                    <textarea id="parentDna" class="form-control sequence-input mb-2" placeholder="Sequência do progenitor"></textarea>
+                                </div>
+                            </div>
+                            <button id="paternityTestBtn" class="btn dna-btn">Realizar Teste</button>
+                            
+                            <div id="paternityResults" class="mt-4" style="display: none;">
+                                <div class="alert alert-info">
+                                    <h4><i class="bi bi-clipboard2-pulse"></i> Resultado do Teste</h4>
+                                    <p id="paternityProbability" class="mb-1"></p>
+                                    <p id="sharedMarkers" class="mb-1"></p>
+                                    <p id="conclusion" class="mb-0 font-weight-bold"></p>
+                                </div>
+                                <div class="mt-3">
+                                    <canvas id="paternityChart"></canvas>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <button id="exportBtn" class="btn btn-secondary w-100 mb-4">
+                        <i class="bi bi-download"></i> Exportar Relatório Completo
+                    </button>
                 </div>
                 
                 <div id="errorContainer" class="alert alert-danger mt-4" style="display: none;"></div>
@@ -318,6 +360,26 @@
                 'AMR': { name: 'Americano', color: '#9b59b6' },
                 'OCE': { name: 'Oceania', color: '#1abc9c' },
                 'MDE': { name: 'Oriente Médio', color: '#e67e22' }
+            },
+            snps: {
+                'rs1815739': { position: 100, normal: 'C', variant: 'T', trait: 'Tipo de fibra muscular (velocidade/força)' },
+                'rs4680': { position: 200, normal: 'G', variant: 'A', trait: 'Metabolismo de neurotransmissores (COMT)' },
+                'rs9939609': { position: 300, normal: 'T', variant: 'A', trait: 'Predisposição à obesidade (FTO)' },
+                'rs7412': { position: 400, normal: 'C', variant: 'T', trait: 'Níveis de colesterol (APOE)' },
+                'rs1800497': { position: 500, normal: 'G', variant: 'A', trait: 'Sensibilidade à dopamina (DRD2)' },
+                'rs429358': { position: 600, normal: 'T', variant: 'C', trait: 'Risco de Alzheimer (APOE)' },
+                'rs1799971': { position: 700, normal: 'A', variant: 'G', trait: 'Resposta a opioides (OPRM1)' },
+                'rs6152': { position: 800, normal: 'G', variant: 'A', trait: 'Resistência à insulina' },
+                'rs1229984': { position: 900, normal: 'G', variant: 'A', trait: 'Metabolismo do álcool (ADH1B)' },
+                'rs1801133': { position: 1000, normal: 'C', variant: 'T', trait: 'Metabolismo do folato (MTHFR)' }
+            },
+            diseases: {
+                'Fibrose Cística': { marker: 'ATCTTTGGT', description: 'Doença genética que afeta pulmões e sistema digestivo' },
+                'Anemia Falciforme': { marker: 'GTGCACCTG', description: 'Distúrbio sanguíneo que causa deformação das hemácias' },
+                'Huntington': { marker: 'CAGCAGCAG', description: 'Doença neurodegenerativa progressiva' },
+                'Tay-Sachs': { marker: 'TATCGCATA', description: 'Distúrbio neurológico fatal' },
+                'Fenilcetonúria': { marker: 'GATCGATCG', description: 'Erro inato do metabolismo da fenilalanina' },
+                'Hemofilia A': { marker: 'CTAGCTAGC', description: 'Distúrbio de coagulação sanguínea' }
             }
         };
 
@@ -326,20 +388,27 @@
         const uploadBtn = document.getElementById('uploadBtn');
         const clearBtn = document.getElementById('clearBtn');
         const exampleBtn = document.getElementById('exampleBtn');
+        const paternityTestBtn = document.getElementById('paternityTestBtn');
+        const exportBtn = document.getElementById('exportBtn');
         const dnaSequenceInput = document.getElementById('dnaSequence');
         const dnaFileInput = document.getElementById('dnaFile');
+        const childDnaInput = document.getElementById('childDna');
+        const parentDnaInput = document.getElementById('parentDna');
         const resultsContainer = document.getElementById('resultsContainer');
         const analysisResults = document.getElementById('analysisResults');
         const loadingSpinner = document.getElementById('loadingSpinner');
         const errorContainer = document.getElementById('errorContainer');
         const progressBar = document.getElementById('progressBar');
         const progressText = document.getElementById('progressText');
+        const paternityResults = document.getElementById('paternityResults');
 
         // Event Listeners
         analyzeBtn.addEventListener('click', analyzeManualSequence);
         uploadBtn.addEventListener('click', processFile);
         clearBtn.addEventListener('click', clearInput);
         exampleBtn.addEventListener('click', loadExample);
+        paternityTestBtn.addEventListener('click', performPaternityTest);
+        exportBtn.addEventListener('click', exportReport);
 
         // Função principal para análise manual
         function analyzeManualSequence() {
@@ -433,6 +502,12 @@
             // 4. Buscar parentes
             const relatives = findGeneticRelatives(dnaSequence);
             
+            // 5. Análise de SNPs
+            const snps = analyzeSNPs(dnaSequence);
+            
+            // 6. Verificação de doenças genéticas
+            const conditions = checkGeneticConditions(dnaSequence);
+            
             return {
                 sequence: dnaSequence,
                 length: dnaSequence.length,
@@ -443,7 +518,9 @@
                 paternalHaplogroup,
                 maternalHaplogroup,
                 ancestry,
-                relatives
+                relatives,
+                snps,
+                conditions
             };
         }
 
@@ -621,6 +698,135 @@
             return relatives.filter(r => r.match > 30);
         }
 
+        function analyzeSNPs(dnaSequence) {
+            const foundSNPs = [];
+            
+            for (const [snpId, snpData] of Object.entries(dnaDatabase.snps)) {
+                if (dnaSequence.length > snpData.position) {
+                    const base = dnaSequence[snpData.position];
+                    if (base === snpData.variant) {
+                        foundSNPs.push({
+                            id: snpId,
+                            genotype: base + base, // Simplificado (deveria ser diploide)
+                            trait: snpData.trait,
+                            position: snpData.position
+                        });
+                    }
+                }
+            }
+            
+            return foundSNPs;
+        }
+
+        function checkGeneticConditions(dnaSequence) {
+            const conditions = JSON.parse(JSON.stringify(dnaDatabase.diseases)); // Deep copy
+            
+            for (const [condition, data] of Object.entries(conditions)) {
+                data.found = dnaSequence.includes(data.marker);
+            }
+            
+            return conditions;
+        }
+
+        // Funções para teste de paternidade
+        function performPaternityTest() {
+            const childDna = childDnaInput.value.trim().toUpperCase();
+            const parentDna = parentDnaInput.value.trim().toUpperCase();
+            
+            if (!childDna || !parentDna) {
+                showError('Por favor, insira ambas as sequências de DNA.');
+                return;
+            }
+            
+            if (!isValidDnaSequence(childDna) || !isValidDnaSequence(parentDna)) {
+                showError('Sequência inválida. Use apenas bases A, T, C e G.');
+                return;
+            }
+            
+            // Mostrar loading
+            paternityResults.style.display = 'none';
+            paternityTestBtn.disabled = true;
+            paternityTestBtn.innerHTML = '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Analisando...';
+            
+            setTimeout(() => {
+                try {
+                    const results = calculatePaternity(childDna, parentDna);
+                    displayPaternityResults(results);
+                } catch (error) {
+                    showError('Erro durante o teste: ' + error.message);
+                } finally {
+                    paternityTestBtn.disabled = false;
+                    paternityTestBtn.textContent = 'Realizar Teste';
+                }
+            }, 1000);
+        }
+
+        function calculatePaternity(childDna, parentDna) {
+            // Selecionar 20 marcadores aleatórios para comparação
+            const markers = generateRandomMarkers(Math.min(childDna.length, parentDna.length));
+            
+            let matches = 0;
+            const comparedMarkers = [];
+            
+            markers.forEach(marker => {
+                const childMarker = childDna.substr(marker.position, marker.length);
+                const parentMarker = parentDna.substr(marker.position, marker.length);
+                
+                const similarity = calculateSimilarity(childMarker, parentMarker);
+                comparedMarkers.push({
+                    position: marker.position,
+                    length: marker.length,
+                    child: childMarker,
+                    parent: parentMarker,
+                    similarity: similarity
+                });
+                
+                if (similarity >= 0.9) matches++;
+            });
+            
+            // Calcular probabilidade (simplificado para demonstração)
+            const probability = (matches / markers.length * 100).toFixed(2);
+            const isLikely = probability >= 95;
+            
+            return {
+                probability,
+                isLikely,
+                comparedMarkers,
+                totalMarkers: markers.length,
+                matches
+            };
+        }
+
+        function generateRandomMarkers(sequenceLength) {
+            const markers = [];
+            const markerCount = 20; // Número de marcadores para comparar
+            const markerLength = 10; // Tamanho de cada marcador
+            
+            for (let i = 0; i < markerCount; i++) {
+                const maxPosition = sequenceLength - markerLength;
+                if (maxPosition <= 0) break;
+                
+                const position = Math.floor(Math.random() * maxPosition);
+                markers.push({
+                    position,
+                    length: markerLength
+                });
+            }
+            
+            return markers;
+        }
+
+        function calculateSimilarity(seq1, seq2) {
+            if (seq1.length !== seq2.length) return 0;
+            
+            let matches = 0;
+            for (let i = 0; i < seq1.length; i++) {
+                if (seq1[i] === seq2[i]) matches++;
+            }
+            
+            return matches / seq1.length;
+        }
+
         // Funções para exibir resultados
         function displayResults(results) {
             // 1. Informações básicas
@@ -662,6 +868,119 @@
             
             // 5. Proteína
             renderProteinChart(results.protein);
+            
+            // 6. SNPs
+            const snpsContainer = document.getElementById('snpsContainer');
+            snpsContainer.innerHTML = '';
+            snpsContainer.appendChild(displaySNPs(results.snps));
+            
+            // 7. Doenças genéticas
+            const diseaseContainer = document.getElementById('diseaseContainer');
+            diseaseContainer.innerHTML = '';
+            diseaseContainer.appendChild(displayGeneticConditions(results.conditions));
+            
+            // Preencher automaticamente o campo da criança para teste de paternidade
+            childDnaInput.value = results.sequence.substring(0, 200); // Usar parte da sequência
+        }
+
+        function displayPaternityResults(results) {
+            const paternityProbability = document.getElementById('paternityProbability');
+            const sharedMarkers = document.getElementById('sharedMarkers');
+            const conclusion = document.getElementById('conclusion');
+            
+            paternityProbability.innerHTML = `<strong>Probabilidade de Parentesco:</strong> ${results.probability}%`;
+            sharedMarkers.innerHTML = `<strong>Marcadores Compartilhados:</strong> ${results.matches} de ${results.totalMarkers}`;
+            
+            if (results.isLikely) {
+                conclusion.innerHTML = '<i class="bi bi-check-circle text-success"></i> CONCLUSÃO: Provável relação de parentesco';
+                conclusion.className = 'mb-0 font-weight-bold text-success';
+            } else {
+                conclusion.innerHTML = '<i class="bi bi-x-circle text-danger"></i> CONCLUSÃO: Improvável relação de parentesco';
+                conclusion.className = 'mb-0 font-weight-bold text-danger';
+            }
+            
+            renderPaternityChart(results);
+            paternityResults.style.display = 'block';
+        }
+
+        function displaySNPs(snps) {
+            const container = document.createElement('div');
+            container.className = 'mt-4';
+            
+            if (snps.length === 0) {
+                container.innerHTML = '<p class="text-muted">Nenhum SNP significativo identificado</p>';
+                return container;
+            }
+            
+            const title = document.createElement('h5');
+            title.textContent = 'SNPs Relevantes Identificados';
+            container.appendChild(title);
+            
+            const list = document.createElement('div');
+            list.className = 'list-group';
+            
+            snps.forEach(snp => {
+                const item = document.createElement('a');
+                item.className = 'list-group-item list-group-item-action';
+                item.innerHTML = `
+                    <div class="d-flex w-100 justify-content-between">
+                        <h6 class="mb-1">${snp.id}</h6>
+                        <small class="text-muted">Posição: ${snp.position}</small>
+                    </div>
+                    <p class="mb-1">${snp.trait}</p>
+                    <small class="text-muted">Genótipo: ${snp.genotype}</small>
+                `;
+                list.appendChild(item);
+            });
+            
+            container.appendChild(list);
+            return container;
+        }
+
+        function displayGeneticConditions(conditions) {
+            const container = document.createElement('div');
+            container.className = 'mt-4';
+            
+            const title = document.createElement('h5');
+            title.textContent = 'Risco de Doenças Genéticas';
+            container.appendChild(title);
+            
+            const list = document.createElement('div');
+            list.className = 'list-group';
+            
+            let foundAny = false;
+            
+            for (const [condition, data] of Object.entries(conditions)) {
+                if (data.found) {
+                    foundAny = true;
+                    const item = document.createElement('a');
+                    item.className = 'list-group-item list-group-item-danger';
+                    item.innerHTML = `
+                        <div class="d-flex w-100 justify-content-between">
+                            <h6 class="mb-1">${condition}</h6>
+                            <i class="bi bi-exclamation-triangle-fill"></i>
+                        </div>
+                        <small>${data.description}. Marcador genético encontrado. Consulte um geneticista.</small>
+                    `;
+                    list.appendChild(item);
+                }
+            }
+            
+            if (!foundAny) {
+                const item = document.createElement('a');
+                item.className = 'list-group-item list-group-item-success';
+                item.innerHTML = `
+                    <div class="d-flex w-100 justify-content-between">
+                        <h6 class="mb-1">Nenhum marcador de alto risco encontrado</h6>
+                        <i class="bi bi-check-circle-fill"></i>
+                    </div>
+                    <small>Nenhum marcador para as principais doenças genéticas foi identificado.</small>
+                `;
+                list.appendChild(item);
+            }
+            
+            container.appendChild(list);
+            return container;
         }
 
         function renderMutations(containerId, mutations) {
@@ -829,6 +1148,37 @@
             });
         }
 
+        function renderPaternityChart(results) {
+            const ctx = document.getElementById('paternityChart').getContext('2d');
+            
+            new Chart(ctx, {
+                type: 'doughnut',
+                data: {
+                    labels: ['Marcadores Correspondentes', 'Marcadores Diferentes'],
+                    datasets: [{
+                        data: [results.matches, results.totalMarkers - results.matches],
+                        backgroundColor: ['#2ecc71', '#e74c3c'],
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    plugins: {
+                        legend: {
+                            position: 'bottom'
+                        },
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    return `${context.label}: ${context.raw} (${((context.raw/results.totalMarkers)*100).toFixed(1)}%)`;
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+        }
+
         // Funções auxiliares para processamento de arquivos
         function readTextFile(file) {
             return new Promise((resolve, reject) => {
@@ -916,21 +1266,58 @@
         function clearInput() {
             dnaSequenceInput.value = '';
             dnaFileInput.value = '';
+            childDnaInput.value = '';
+            parentDnaInput.value = '';
             resultsContainer.style.display = 'none';
             errorContainer.style.display = 'none';
+            paternityResults.style.display = 'none';
             updateProgress(0, 'Aguardando arquivo...');
         }
 
         function loadExample() {
             const exampleSequence = 'ATCGATCGATCGATCGATCGATCGATCGATCG' + 
                                    'GATCGATCGATCGATCGATCGATCGATCGATC' + 
-                                   'CGATCGATCGATCGATCGATCGATCGATCGAT';
+                                   'CGATCGATCGATCGATCGATCGATCGATCGAT' +
+                                   'TAGCTAGCTAGCTAGCTAGCTAGCTAGCTAGC' +
+                                   'CTAGCTAGCTAGCTAGCTAGCTAGCTAGCTAG';
             dnaSequenceInput.value = exampleSequence;
+        }
+
+        function exportReport() {
+            const results = document.getElementById('analysisResults').innerHTML;
+            const blob = new Blob([`
+                <!DOCTYPE html>
+                <html>
+                <head>
+                    <title>Relatório de Análise Genética</title>
+                    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+                    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css">
+                    <style>
+                        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; padding: 20px; }
+                        .dna-card { border-radius: 10px; box-shadow: 0 4px 12px rgba(0,0,0,0.1); margin-bottom: 2rem; }
+                        .protein-display { font-family: monospace; background-color: #2c3e50; color: white; padding: 1rem; border-radius: 8px; }
+                    </style>
+                </head>
+                <body>
+                    <div class="container">
+                        <h1 class="text-center mb-4"><i class="bi bi-dna"></i> Relatório de Análise Genética</h1>
+                        ${results.replace('Exportar Relatório Completo', '')}
+                        <p class="text-muted mt-4">Relatório gerado em ${new Date().toLocaleString()}</p>
+                    </div>
+                </body>
+                </html>
+            `], { type: 'text/html' });
+            
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'relatorio-genetico.html';
+            a.click();
+            URL.revokeObjectURL(url);
         }
 
         // Inicialização
         document.addEventListener('DOMContentLoaded', () => {
-            // Configuração inicial
             clearInput();
         });
     </script>
