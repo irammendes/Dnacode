@@ -97,9 +97,71 @@
         .base-C { background-color: #2196F3; }
         .base-G { background-color: #FFC107; color: #000; }
         
-        .snp-marker {
-            cursor: help;
-            border-bottom: 1px dotted #666;
+        .history-timeline {
+            position: relative;
+            padding-left: 30px;
+            margin-top: 20px;
+        }
+        
+        .history-timeline::before {
+            content: '';
+            position: absolute;
+            left: 10px;
+            top: 0;
+            bottom: 0;
+            width: 2px;
+            background-color: var(--dna-blue);
+        }
+        
+        .history-event {
+            position: relative;
+            margin-bottom: 20px;
+        }
+        
+        .history-event::before {
+            content: '';
+            position: absolute;
+            left: -30px;
+            top: 5px;
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            background-color: var(--dna-blue);
+            border: 2px solid white;
+        }
+        
+        .history-period {
+            font-weight: bold;
+            color: var(--dna-dark);
+        }
+        
+        .history-description {
+            background-color: #f8f9fa;
+            padding: 10px;
+            border-radius: 5px;
+            border-left: 3px solid var(--dna-blue);
+        }
+        
+        .migration-map {
+            width: 100%;
+            height: 300px;
+            background-color: #f0f0f0;
+            border-radius: 8px;
+            margin-top: 15px;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .migration-path {
+            stroke-width: 3;
+            stroke-linecap: round;
+            fill: none;
+        }
+        
+        .migration-point {
+            r: 6;
+            stroke-width: 2;
+            stroke: white;
         }
         
         @media (max-width: 768px) {
@@ -235,6 +297,8 @@
                                     <div id="paternalMutations" class="mt-3">
                                         <p class="text-muted">Nenhuma mutação significativa identificada</p>
                                     </div>
+                                    <div id="paternalHistory"></div>
+                                    <div id="paternalMigration" class="migration-map"></div>
                                 </div>
                             </div>
                         </div>
@@ -252,6 +316,8 @@
                                     <div id="maternalMutations" class="mt-3">
                                         <p class="text-muted">Nenhuma mutação significativa identificada</p>
                                     </div>
+                                    <div id="maternalHistory"></div>
+                                    <div id="maternalMigration" class="migration-map"></div>
                                 </div>
                             </div>
                         </div>
@@ -325,32 +391,261 @@
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <script>
-        // Banco de dados de referência
+        // Banco de dados de referência COMPLETO com históricos detalhados
         const dnaDatabase = {
             paternalHaplogroups: {
-                'R1a': { origin: 'Europa Oriental e Ásia Central', age: '18,000 anos', mutations: ['M420', 'SRY1532.2'] },
-                'R1b': { origin: 'Europa Ocidental', age: '25,000 anos', mutations: ['M343', 'P25'] },
-                'I1': { origin: 'Escandinávia', age: '5,000 anos', mutations: ['M253', 'DF29'] },
-                'I2': { origin: 'Balcãs', age: '15,000 anos', mutations: ['M438', 'P215'] },
-                'J1': { origin: 'Oriente Médio', age: '10,000 anos', mutations: ['M267', 'P58'] },
-                'J2': { origin: 'Mediterrâneo', age: '12,000 anos', mutations: ['M172', 'M410'] },
-                'E1b1b': { origin: 'Norte da África', age: '20,000 anos', mutations: ['M215', 'M35'] },
-                'G2a': { origin: 'Cáucaso', age: '15,000 anos', mutations: ['P15', 'M201'] },
-                'N': { origin: 'Sibéria', age: '12,000 anos', mutations: ['M231', 'LLY22g'] },
-                'Q': { origin: 'Américas', age: '15,000 anos', mutations: ['M242', 'MEH2'] }
+                'R1a': { 
+                    origin: 'Europa Oriental e Ásia Central', 
+                    age: '18,000 anos', 
+                    mutations: ['M420', 'SRY1532.2'],
+                    history: [
+                        {
+                            period: '20,000 - 18,000 anos atrás',
+                            description: 'Originou-se nas estepes da Eurásia, associado aos primeiros caçadores-coletores da região.'
+                        },
+                        {
+                            period: '18,000 - 5,000 anos atrás',
+                            description: 'Expandiu-se com as migrações para a Europa Oriental e Ásia Central. Associado à cultura Yamnaya.'
+                        },
+                        {
+                            period: '5,000 anos atrás até presente',
+                            description: 'Disseminou-se por toda Europa com as migrações indo-europeias. Presente em altas frequências na Europa Oriental, Escandinávia e subcontinente indiano.'
+                        }
+                    ],
+                    migrationPath: [
+                        {x: 75, y: 50, era: 'Origem', desc: 'Estepes Eurásicas'},
+                        {x: 60, y: 40, era: '5,000 AEC', desc: 'Europa Oriental'},
+                        {x: 45, y: 30, era: '3,000 AEC', desc: 'Europa Central'},
+                        {x: 30, y: 40, era: '2,000 AEC', desc: 'Escandinávia'}
+                    ]
+                },
+                'R1b': { 
+                    origin: 'Europa Ocidental', 
+                    age: '25,000 anos', 
+                    mutations: ['M343', 'P25'],
+                    history: [
+                        {
+                            period: '25,000 - 10,000 anos atrás',
+                            description: 'Originou-se no Oriente Médio ou Ásia Central durante o Paleolítico Superior.'
+                        },
+                        {
+                            period: '10,000 - 5,000 anos atrás',
+                            description: 'Migrou para a Europa durante o Mesolítico, associado aos caçadores-coletores ocidentais.'
+                        },
+                        {
+                            period: '5,000 anos atrás até presente',
+                            description: 'Expandiu-se dramaticamente durante a Idade do Bronze com a cultura do Vaso Campaniforme, tornando-se o haplogrupo dominante na Europa Ocidental.'
+                        }
+                    ],
+                    migrationPath: [
+                        {x: 80, y: 60, era: 'Origem', desc: 'Oriente Médio'},
+                        {x: 60, y: 50, era: '10,000 AEC', desc: 'Anatólia'},
+                        {x: 40, y: 45, era: '5,000 AEC', desc: 'Europa Central'},
+                        {x: 25, y: 50, era: '3,000 AEC', desc: 'Europa Ocidental'}
+                    ]
+                },
+                'I1': { 
+                    origin: 'Escandinávia', 
+                    age: '5,000 anos', 
+                    mutations: ['M253', 'DF29'],
+                    history: [
+                        {
+                            period: '5,000 - 3,000 anos atrás',
+                            description: 'Surgiu na Escandinávia durante o Neolítico, possivelmente de um grupo isolado de caçadores-coletores.'
+                        },
+                        {
+                            period: '3,000 - 1,000 anos atrás',
+                            description: 'Expandiu-se com as migrações germânicas e vikings.'
+                        },
+                        {
+                            period: '1,000 anos atrás até presente',
+                            description: 'Presente em alta frequência na Escandinávia e áreas colonizadas pelos vikings.'
+                        }
+                    ],
+                    migrationPath: [
+                        {x: 50, y: 30, era: 'Origem', desc: 'Escandinávia'},
+                        {x: 45, y: 40, era: '2,000 AEC', desc: 'Europa Central'},
+                        {x: 40, y: 50, era: '500 AEC', desc: 'Germânia'},
+                        {x: 30, y: 60, era: '800 EC', desc: 'Ilhas Britânicas'}
+                    ]
+                },
+                'J1': { 
+                    origin: 'Oriente Médio', 
+                    age: '10,000 anos', 
+                    mutations: ['M267', 'P58'],
+                    history: [
+                        {
+                            period: '10,000 - 5,000 anos atrás',
+                            description: 'Originou-se no Crescente Fértil, associado às primeiras civilizações agrícolas.'
+                        },
+                        {
+                            period: '5,000 - 2,000 anos atrás',
+                            description: 'Expandiu-se com as migrações semíticas e o comércio no Oriente Médio.'
+                        },
+                        {
+                            period: '2,000 anos atrás até presente',
+                            description: 'Presente em alta frequência no mundo árabe e entre judeus.'
+                        }
+                    ],
+                    migrationPath: [
+                        {x: 75, y: 60, era: 'Origem', desc: 'Mesopotâmia'},
+                        {x: 70, y: 55, era: '5,000 AEC', desc: 'Levante'},
+                        {x: 65, y: 50, era: '3,000 AEC', desc: 'Península Arábica'},
+                        {x: 60, y: 40, era: '1,000 EC', desc: 'Norte da África'}
+                    ]
+                },
+                'E1b1b': { 
+                    origin: 'Norte da África', 
+                    age: '20,000 anos', 
+                    mutations: ['M215', 'M35'],
+                    history: [
+                        {
+                            period: '20,000 - 10,000 anos atrás',
+                            description: 'Originou-se no Chifre da África ou no Oriente Próximo.'
+                        },
+                        {
+                            period: '10,000 - 5,000 anos atrás',
+                            description: 'Expandiu-se para o Norte da África e Mediterrâneo Oriental.'
+                        },
+                        {
+                            period: '5,000 anos atrás até presente',
+                            description: 'Associado a migrações fenícias, gregas e romanas pelo Mediterrâneo.'
+                        }
+                    ],
+                    migrationPath: [
+                        {x: 75, y: 70, era: 'Origem', desc: 'Chifre da África'},
+                        {x: 70, y: 60, era: '8,000 AEC', desc: 'Vale do Nilo'},
+                        {x: 60, y: 50, era: '5,000 AEC', desc: 'Levante'},
+                        {x: 50, y: 45, era: '2,000 AEC', desc: 'Grécia'}
+                    ]
+                }
             },
             maternalHaplogroups: {
-                'H': { origin: 'Europa', age: '20,000 anos', mutations: ['7028C', '14766C'] },
-                'U': { origin: 'Europa Ocidental', age: '50,000 anos', mutations: ['12308G', '12372A'] },
-                'K': { origin: 'Oriente Médio', age: '12,000 anos', mutations: ['16224C', '16311C'] },
-                'T': { origin: 'Mediterrâneo', age: '17,000 anos', mutations: ['709A', '1888G'] },
-                'J': { origin: 'Oriente Médio', age: '25,000 anos', mutations: ['4216C', '12612G'] },
-                'V': { origin: 'Europa do Norte', age: '15,000 anos', mutations: ['4580G', '15904T'] },
-                'L': { origin: 'África', age: '150,000 anos', mutations: ['3594C', '10810C'] },
-                'A': { origin: 'Américas', age: '20,000 anos', mutations: ['663G', '8794C'] },
-                'B': { origin: 'Ásia Oriental', age: '50,000 anos', mutations: ['8281-8289d', '16189C'] },
-                'C': { origin: 'Sibéria', age: '20,000 anos', mutations: ['14318C', '16327T'] },
-                'D': { origin: 'Ásia Oriental', age: '40,000 anos', mutations: ['5178A', '8414T'] }
+                'H': { 
+                    origin: 'Europa', 
+                    age: '20,000 anos', 
+                    mutations: ['7028C', '14766C'],
+                    history: [
+                        {
+                            period: '20,000 - 10,000 anos atrás',
+                            description: 'Originou-se no Oriente Próximo ou no Cáucaso durante o Último Máximo Glacial.'
+                        },
+                        {
+                            period: '10,000 - 5,000 anos atrás',
+                            description: 'Expandiu-se para a Europa com os primeiros agricultores neolíticos vindos do Crescente Fértil.'
+                        },
+                        {
+                            period: '5,000 anos atrás até presente',
+                            description: 'Tornou-se o haplogrupo mitocondrial mais comum na Europa (40% da população), com altas frequências no Atlântico Europeu.'
+                        }
+                    ],
+                    migrationPath: [
+                        {x: 75, y: 55, era: 'Origem', desc: 'Oriente Próximo'},
+                        {x: 65, y: 50, era: '8,000 AEC', desc: 'Anatólia'},
+                        {x: 55, y: 45, era: '6,000 AEC', desc: 'Balcãs'},
+                        {x: 40, y: 50, era: '4,000 AEC', desc: 'Europa Ocidental'}
+                    ]
+                },
+                'U': { 
+                    origin: 'Europa Ocidental', 
+                    age: '50,000 anos', 
+                    mutations: ['12308G', '12372A'],
+                    history: [
+                        {
+                            period: '50,000 - 30,000 anos atrás',
+                            description: 'Um dos mais antigos haplogrupos europeus, originado no Oriente Médio ou no Sul da Ásia.'
+                        },
+                        {
+                            period: '30,000 - 10,000 anos atrás',
+                            description: 'Presente nos primeiros humanos modernos da Europa, incluindo os caçadores-coletores do Paleolítico Superior.'
+                        },
+                        {
+                            period: '10,000 anos atrás até presente',
+                            description: 'Subclades como U5 e U8 são marcadores genéticos dos primeiros europeus. Encontrado em restos humanos antigos como o Homem de Cro-Magnon.'
+                        }
+                    ],
+                    migrationPath: [
+                        {x: 80, y: 60, era: 'Origem', desc: 'Oriente Médio'},
+                        {x: 70, y: 50, era: '40,000 AEC', desc: 'Cáucaso'},
+                        {x: 60, y: 45, era: '30,000 AEC', desc: 'Europa Oriental'},
+                        {x: 50, y: 50, era: '20,000 AEC', desc: 'Europa Ocidental'}
+                    ]
+                },
+                'K': { 
+                    origin: 'Oriente Médio', 
+                    age: '12,000 anos', 
+                    mutations: ['16224C', '16311C'],
+                    history: [
+                        {
+                            period: '12,000 - 8,000 anos atrás',
+                            description: 'Originou-se no Oriente Próximo durante o Neolítico.'
+                        },
+                        {
+                            period: '8,000 - 4,000 anos atrás',
+                            description: 'Expandiu-se para a Europa com os primeiros agricultores.'
+                        },
+                        {
+                            period: '4,000 anos atrás até presente',
+                            description: 'Presente em toda Europa, especialmente entre judeus ashkenazim.'
+                        }
+                    ],
+                    migrationPath: [
+                        {x: 75, y: 55, era: 'Origem', desc: 'Crescente Fértil'},
+                        {x: 65, y: 50, era: '7,000 AEC', desc: 'Anatólia'},
+                        {x: 55, y: 45, era: '5,000 AEC', desc: 'Balcãs'},
+                        {x: 45, y: 50, era: '3,000 AEC', desc: 'Europa Central'}
+                    ]
+                },
+                'T': { 
+                    origin: 'Mediterrâneo', 
+                    age: '17,000 anos', 
+                    mutations: ['709A', '1888G'],
+                    history: [
+                        {
+                            period: '17,000 - 10,000 anos atrás',
+                            description: 'Originou-se no Oriente Próximo durante o Paleolítico Superior.'
+                        },
+                        {
+                            period: '10,000 - 5,000 anos atrás',
+                            description: 'Expandiu-se pelo Mediterrâneo com as primeiras comunidades agrícolas.'
+                        },
+                        {
+                            period: '5,000 anos atrás até presente',
+                            description: 'Presente em toda Europa, especialmente no sul, e associado a migrações fenícias.'
+                        }
+                    ],
+                    migrationPath: [
+                        {x: 75, y: 55, era: 'Origem', desc: 'Mesopotâmia'},
+                        {x: 70, y: 60, era: '8,000 AEC', desc: 'Levante'},
+                        {x: 65, y: 65, era: '6,000 AEC', desc: 'Egito'},
+                        {x: 55, y: 60, era: '4,000 AEC', desc: 'Sicília'}
+                    ]
+                },
+                'L': { 
+                    origin: 'África', 
+                    age: '150,000 anos', 
+                    mutations: ['3594C', '10810C'],
+                    history: [
+                        {
+                            period: '150,000 - 50,000 anos atrás',
+                            description: 'Um dos mais antigos haplogrupos humanos, originado na África Oriental.'
+                        },
+                        {
+                            period: '50,000 - 10,000 anos atrás',
+                            description: 'Diversificou-se na África Subsaariana com as migrações bantas.'
+                        },
+                        {
+                            period: '10,000 anos atrás até presente',
+                            description: 'Presente em toda África e nas diásporas africanas recentes.'
+                        }
+                    ],
+                    migrationPath: [
+                        {x: 75, y: 80, era: 'Origem', desc: 'África Oriental'},
+                        {x: 70, y: 75, era: '50,000 AEC', desc: 'África Central'},
+                        {x: 65, y: 70, era: '20,000 AEC', desc: 'África Ocidental'},
+                        {x: 60, y: 65, era: '3,000 AEC', desc: 'Saara'}
+                    ]
+                }
             },
             ethnicRegions: {
                 'EUR': { name: 'Europeu', color: '#3498db' },
@@ -847,18 +1142,9 @@
                 baseCountsContainer.appendChild(badge);
             }
             
-            // 2. Haplogrupos
-            document.getElementById('paternalHaplogroup').textContent = results.paternalHaplogroup.haplogroup;
-            document.getElementById('paternalOrigin').textContent = 
-                `${results.paternalHaplogroup.origin} (${results.paternalHaplogroup.age})`;
-            
-            document.getElementById('maternalHaplogroup').textContent = results.maternalHaplogroup.haplogroup;
-            document.getElementById('maternalOrigin').textContent = 
-                `${results.maternalHaplogroup.origin} (${results.maternalHaplogroup.age})`;
-            
-            // Mutações
-            renderMutations('paternalMutations', results.paternalHaplogroup.mutations || []);
-            renderMutations('maternalMutations', results.maternalHaplogroup.mutations || []);
+            // 2. Haplogrupos com histórico
+            displayHaplogroupInfo(results.paternalHaplogroup, 'paternal');
+            displayHaplogroupInfo(results.maternalHaplogroup, 'maternal');
             
             // 3. Ancestralidade
             renderAncestryChart(results.ancestry);
@@ -881,6 +1167,119 @@
             
             // Preencher automaticamente o campo da criança para teste de paternidade
             childDnaInput.value = results.sequence.substring(0, 200); // Usar parte da sequência
+        }
+
+        function displayHaplogroupInfo(haplogroupData, type) {
+            const prefix = type === 'paternal' ? 'paternal' : 'maternal';
+            
+            document.getElementById(`${prefix}Haplogroup`).textContent = haplogroupData.haplogroup;
+            document.getElementById(`${prefix}Origin`).textContent = 
+                `${haplogroupData.origin} (${haplogroupData.age})`;
+            
+            const mutationsContainer = document.getElementById(`${prefix}Mutations`);
+            mutationsContainer.innerHTML = '';
+            
+            if (haplogroupData.mutations && haplogroupData.mutations.length > 0) {
+                const mutationsList = document.createElement('ul');
+                mutationsList.className = 'list-group';
+                
+                haplogroupData.mutations.forEach(mutation => {
+                    const item = document.createElement('li');
+                    item.className = 'list-group-item';
+                    item.textContent = mutation;
+                    mutationsList.appendChild(item);
+                });
+                
+                mutationsContainer.appendChild(mutationsList);
+            } else {
+                mutationsContainer.innerHTML = '<p class="text-muted">Nenhuma mutação significativa identificada</p>';
+            }
+            
+            // Adicionar histórico
+            const historyContainer = document.getElementById(`${prefix}History`);
+            historyContainer.innerHTML = displayHaplogroupHistory(haplogroupData.haplogroup, type);
+            
+            // Adicionar mapa de migração
+            renderMigrationMap(haplogroupData.haplogroup, `${prefix}Migration`, type);
+        }
+
+        function displayHaplogroupHistory(haplogroup, type) {
+            const history = dnaDatabase[type === 'paternal' ? 'paternalHaplogroups' : 'maternalHaplogroups'][haplogroup].history;
+            
+            if (!history || history.length === 0) {
+                return '<p class="text-muted">Histórico detalhado não disponível para este haplogrupo.</p>';
+            }
+            
+            let html = '<h5 class="mt-4"><i class="bi bi-clock-history"></i> História Evolutiva</h5>';
+            html += '<div class="history-timeline">';
+            
+            history.forEach(event => {
+                html += `
+                    <div class="history-event">
+                        <div class="history-period">${event.period}</div>
+                        <div class="history-description">${event.description}</div>
+                    </div>
+                `;
+            });
+            
+            html += '</div>';
+            return html;
+        }
+
+        function renderMigrationMap(haplogroup, containerId, type) {
+            const container = document.getElementById(containerId);
+            container.innerHTML = '';
+            
+            const haplogroupData = dnaDatabase[type === 'paternal' ? 'paternalHaplogroups' : 'maternalHaplogroups'][haplogroup];
+            
+            if (!haplogroupData || !haplogroupData.migrationPath) {
+                container.innerHTML = '<p class="text-muted">Mapa de migração não disponível</p>';
+                return;
+            }
+            
+            const width = container.clientWidth;
+            const height = container.clientHeight;
+            
+            // Criar SVG
+            const svg = d3.select(`#${containerId}`)
+                .append('svg')
+                .attr('width', width)
+                .attr('height', height);
+            
+            // Desenhar caminho de migração
+            const line = d3.line()
+                .x(d => d.x * width / 100)
+                .y(d => d.y * height / 100);
+            
+            svg.append('path')
+                .datum(haplogroupData.migrationPath)
+                .attr('class', 'migration-path')
+                .attr('stroke', type === 'paternal' ? '#3498db' : '#e74c3c')
+                .attr('d', line);
+            
+            // Adicionar pontos
+            svg.selectAll('.migration-point')
+                .data(haplogroupData.migrationPath)
+                .enter()
+                .append('circle')
+                .attr('class', 'migration-point')
+                .attr('cx', d => d.x * width / 100)
+                .attr('cy', d => d.y * height / 100)
+                .attr('fill', type === 'paternal' ? '#3498db' : '#e74c3c')
+                .append('title')
+                .text(d => `${d.desc} (${d.era})`);
+            
+            // Adicionar rótulos
+            svg.selectAll('.migration-label')
+                .data([haplogroupData.migrationPath[0], haplogroupData.migrationPath[haplogroupData.migrationPath.length - 1]])
+                .enter()
+                .append('text')
+                .attr('x', d => d.x * width / 100 + 10)
+                .attr('y', d => d.y * height / 100)
+                .attr('dy', '0.35em')
+                .text(d => d.desc)
+                .style('font-size', '12px')
+                .style('font-weight', 'bold');
         }
 
         function displayPaternityResults(results) {
@@ -981,28 +1380,6 @@
             
             container.appendChild(list);
             return container;
-        }
-
-        function renderMutations(containerId, mutations) {
-            const container = document.getElementById(containerId);
-            container.innerHTML = '';
-            
-            if (mutations.length === 0) {
-                container.innerHTML = '<p class="text-muted">Nenhuma mutação significativa identificada</p>';
-                return;
-            }
-            
-            const list = document.createElement('ul');
-            list.className = 'list-group';
-            
-            mutations.forEach(mutation => {
-                const item = document.createElement('li');
-                item.className = 'list-group-item';
-                item.textContent = mutation;
-                list.appendChild(item);
-            });
-            
-            container.appendChild(list);
         }
 
         function renderAncestryChart(ancestryData) {
@@ -1296,6 +1673,13 @@
                         body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; padding: 20px; }
                         .dna-card { border-radius: 10px; box-shadow: 0 4px 12px rgba(0,0,0,0.1); margin-bottom: 2rem; }
                         .protein-display { font-family: monospace; background-color: #2c3e50; color: white; padding: 1rem; border-radius: 8px; }
+                        .history-timeline { position: relative; padding-left: 30px; margin-top: 20px; }
+                        .history-timeline::before { content: ''; position: absolute; left: 10px; top: 0; bottom: 0; width: 2px; background-color: #3498db; }
+                        .history-event { position: relative; margin-bottom: 20px; }
+                        .history-event::before { content: ''; position: absolute; left: -30px; top: 5px; width: 12px; height: 12px; border-radius: 50%; background-color: #3498db; border: 2px solid white; }
+                        .history-period { font-weight: bold; color: #2c3e50; }
+                        .history-description { background-color: #f8f9fa; padding: 10px; border-radius: 5px; border-left: 3px solid #3498db; }
+                        .migration-map { width: 100%; height: 300px; background-color: #f0f0f0; border-radius: 8px; margin-top: 15px; }
                     </style>
                 </head>
                 <body>
