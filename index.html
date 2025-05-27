@@ -3,11 +3,12 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Analisador STR Forense - Versão Profissional</title>
+    <title>Analisador STR Forense - Versão Profissional (HTML Único)</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css">
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="https://d3js.org/d3.v7.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <style>
         :root {
             --dna-blue: #3498db;
@@ -54,15 +55,6 @@
             background-color: #2980b9;
         }
         
-        .dna-helix {
-            background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" preserveAspectRatio="none"><path d="M50,0 Q75,25 50,50 Q25,75 50,100" stroke="%233498db" fill="none" stroke-width="0.5"/><path d="M50,0 Q25,25 50,50 Q75,75 50,100" stroke="%23e74c3c" fill="none" stroke-width="0.5"/></svg>');
-            opacity: 0.05;
-            position: absolute;
-            width: 100%;
-            height: 100%;
-            z-index: 0;
-        }
-        
         .haplogroup-card {
             border-left: 4px solid var(--dna-blue);
             transition: all 0.3s;
@@ -73,111 +65,6 @@
             box-shadow: 0 6px 15px rgba(0,0,0,0.1);
         }
         
-        .match-card {
-            border-left: 4px solid var(--dna-green);
-        }
-        
-        .protein-display {
-            font-family: monospace;
-            letter-spacing: 2px;
-            background-color: var(--dna-dark);
-            color: white;
-            padding: 1rem;
-            border-radius: 8px;
-            overflow-x: auto;
-        }
-        
-        .base-count-badge {
-            font-size: 0.8rem;
-            margin-right: 5px;
-        }
-        
-        .base-A { background-color: #4CAF50; }
-        .base-T { background-color: #F44336; }
-        .base-C { background-color: #2196F3; }
-        .base-G { background-color: #FFC107; color: #000; }
-        
-        .history-timeline {
-            position: relative;
-            padding-left: 30px;
-            margin-top: 20px;
-        }
-        
-        .history-timeline::before {
-            content: '';
-            position: absolute;
-            left: 10px;
-            top: 0;
-            bottom: 0;
-            width: 2px;
-            background-color: var(--dna-blue);
-        }
-        
-        .history-event {
-            position: relative;
-            margin-bottom: 20px;
-        }
-        
-        .history-event::before {
-            content: '';
-            position: absolute;
-            left: -30px;
-            top: 5px;
-            width: 12px;
-            height: 12px;
-            border-radius: 50%;
-            background-color: var(--dna-blue);
-            border: 2px solid white;
-        }
-        
-        .history-period {
-            font-weight: bold;
-            color: var(--dna-dark);
-        }
-        
-        .history-description {
-            background-color: #f8f9fa;
-            padding: 10px;
-            border-radius: 5px;
-            border-left: 3px solid var(--dna-blue);
-        }
-        
-        .migration-map {
-            width: 100%;
-            height: 300px;
-            background-color: #f0f0f0;
-            border-radius: 8px;
-            margin-top: 15px;
-            position: relative;
-            overflow: hidden;
-        }
-        
-        .migration-path {
-            stroke-width: 3;
-            stroke-linecap: round;
-            fill: none;
-        }
-        
-        .migration-point {
-            r: 6;
-            stroke-width: 2;
-            stroke: white;
-        }
-        
-        .str-marker {
-            background-color: #f8f9fa;
-            border-left: 4px solid var(--dna-blue);
-            padding: 10px;
-            margin-bottom: 10px;
-            border-radius: 5px;
-            transition: all 0.2s;
-        }
-        
-        .str-marker:hover {
-            transform: translateX(5px);
-            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-        }
-        
         .str-allele {
             display: inline-block;
             padding: 3px 8px;
@@ -186,19 +73,6 @@
             background-color: var(--dna-blue);
             color: white;
             font-weight: bold;
-        }
-        
-        .str-match {
-            background-color: var(--dna-green);
-        }
-        
-        .str-mismatch {
-            background-color: var(--dna-red);
-        }
-        
-        .str-partial {
-            background-color: var(--dna-yellow);
-            color: #333;
         }
         
         .electropherogram {
@@ -245,21 +119,11 @@
             color: white;
         }
         
-        .str-sample-name {
-            font-weight: bold;
-            background-color: #f8f9fa;
-        }
-        
-        .str-probability {
-            font-weight: bold;
-            color: var(--dna-dark);
-        }
-        
         .str-locus-name {
             font-weight: bold;
             background-color: #e9ecef;
         }
-        
+
         @media (max-width: 768px) {
             .analysis-section {
                 padding: 1rem;
@@ -271,13 +135,13 @@
     <div class="container py-5">
         <div class="dna-card card mb-5">
             <div class="card-header dna-header">
-                <h1 class="text-center mb-0"><i class="bi bi-dna"></i> Analisador STR Forense</h1>
+                <h1 class="text-center mb-0"><i class="bi bi-dna"></i> Analisador STR Forense (HTML Único)</h1>
             </div>
             <div class="card-body">
                 <div class="row">
                     <div class="col-md-6">
                         <h3 class="mb-3"><i class="bi bi-keyboard"></i> Inserir Perfil STR</h3>
-                        <textarea id="strProfile" class="form-control sequence-input mb-3" placeholder="D3S1358: 15,18&#10;vWA: 16,19&#10;FGA: 19,22&#10;..."></textarea>
+                        <textarea id="strProfile" class="form-control sequence-input mb-3" placeholder="D3S1358: 15,18\nvWA: 16,19\nFGA: 19,22\n..."></textarea>
                         <div class="d-flex justify-content-between mb-3">
                             <button id="clearBtn" class="btn btn-outline-secondary">Limpar</button>
                             <button id="exampleBtn" class="btn btn-outline-primary">Exemplo</button>
@@ -319,6 +183,7 @@
                         <i class="bi bi-info-circle"></i> Esta ferramenta utiliza algoritmos forenses para análise de marcadores STR. Os resultados são baseados em bancos de dados populacionais reais.
                     </div>
                     
+                    <!-- Basic Info & Allele Distribution -->
                     <div class="row">
                         <div class="col-md-6">
                             <div class="dna-card card mb-4">
@@ -377,6 +242,7 @@
                         </div>
                     </div>
                     
+                    <!-- STR Markers Table -->
                     <div class="dna-card card mb-4">
                         <div class="card-header">
                             <h3><i class="bi bi-list-ol"></i> Marcadores STR Analisados</h3>
@@ -404,5 +270,1458 @@
                                     <!-- Peaks will be added here -->
                                 </div>
                                 <div class="text-center mt-2">
-                                    <
-(Content truncated due to size limit. Use line ranges to read in chunks)
+                                    <small class="text-muted">Representação visual simplificada dos alelos.</small>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Population Analysis -->
+                    <div class="dna-card card mb-4">
+                        <div class="card-header">
+                            <h3><i class="bi bi-globe"></i> Análise Populacional</h3>
+                        </div>
+                        <div class="card-body">
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <h4>Frequência dos Alelos por População</h4>
+                                    <div class="table-responsive">
+                                        <table class="table table-sm table-bordered str-comparison-table">
+                                            <thead>
+                                                <tr class="str-comparison-header">
+                                                    <th>Locus</th>
+                                                    <th>Alelos</th>
+                                                    <th>Caucasiano</th>
+                                                    <th>Africano</th>
+                                                    <th>Asiático</th>
+                                                    <th>Hispânico</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody id="populationFrequencyTable">
+                                                <!-- Population frequencies will be added here -->
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <h4>Gráfico de Frequência Populacional</h4>
+                                    <div class="position-relative" style="height: 300px;">
+                                        <canvas id="populationChart"></canvas>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Comparison Tools -->
+                    <div class="dna-card card mb-4">
+                        <div class="card-header">
+                            <h3><i class="bi bi-people"></i> Ferramentas de Comparação</h3>
+                        </div>
+                        <div class="card-body">
+                            <ul class="nav nav-tabs mb-3" id="comparisonTabs" role="tablist">
+                                <li class="nav-item" role="presentation">
+                                    <button class="nav-link active" id="kinship-tab" data-bs-toggle="tab" data-bs-target="#kinship-panel" type="button" role="tab">Análise de Parentesco</button>
+                                </li>
+                                <li class="nav-item" role="presentation">
+                                    <button class="nav-link" id="forensic-tab" data-bs-toggle="tab" data-bs-target="#forensic-panel" type="button" role="tab">Análise Forense</button>
+                                </li>
+                                <li class="nav-item" role="presentation">
+                                    <button class="nav-link" id="database-tab" data-bs-toggle="tab" data-bs-target="#database-panel" type="button" role="tab">Busca em Banco de Dados</button>
+                                </li>
+                            </ul>
+                            <div class="tab-content" id="comparisonTabsContent">
+                                <!-- Kinship Panel -->
+                                <div class="tab-pane fade show active" id="kinship-panel" role="tabpanel">
+                                    <h4>Análise de Parentesco</h4>
+                                    <div class="row">
+                                        <div class="col-md-6">
+                                            <label for="referenceProfile" class="form-label">Perfil de Referência (Pai/Mãe/Irmão...)</label>
+                                            <textarea id="referenceProfile" class="form-control sequence-input mb-3" rows="5" placeholder="Insira o perfil de referência..."></textarea>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <label for="relationshipType" class="form-label">Tipo de Relação</label>
+                                            <select id="relationshipType" class="form-select mb-3">
+                                                <option value="paternity">Paternidade</option>
+                                                <option value="maternity">Maternidade</option>
+                                                <option value="siblingship">Irmandade</option>
+                                                <option value="other">Outro Parentesco</option>
+                                            </select>
+                                            <button id="kinshipTestBtn" class="btn dna-btn w-100">Realizar Análise de Parentesco</button>
+                                        </div>
+                                    </div>
+                                    <div id="kinshipResults" class="mt-4" style="display: none;">
+                                        <h5>Resultados da Análise de Parentesco</h5>
+                                        <div id="kinshipAlert" class="alert alert-secondary" role="alert">
+                                            <span id="kinshipProbability"></span> | <span id="likelihoodRatio"></span>
+                                            <hr>
+                                            <p class="mb-0" id="kinshipConclusion"></p>
+                                        </div>
+                                        <div class="position-relative mb-3" style="height: 200px;">
+                                            <canvas id="kinshipChart"></canvas>
+                                        </div>
+                                        <h6>Comparação por Locus</h6>
+                                        <div class="table-responsive">
+                                            <table class="table table-sm table-bordered str-comparison-table">
+                                                <thead>
+                                                    <tr class="str-comparison-header">
+                                                        <th>Locus</th>
+                                                        <th>Perfil Principal</th>
+                                                        <th>Perfil Referência</th>
+                                                        <th>Compatibilidade</th>
+                                                        <th>LR Locus</th>
+                                                    </tr>
+                                                </thead>
+                                                <tbody id="kinshipComparisonTable">
+                                                    <!-- Kinship comparison rows -->
+                                                </tbody>
+                                            </table>
+                                        </div>
+                                    </div>
+                                </div>
+                                <!-- Forensic Panel -->
+                                <div class="tab-pane fade" id="forensic-panel" role="tabpanel">
+                                    <h4>Análise Forense</h4>
+                                    <div class="row">
+                                        <div class="col-md-6">
+                                            <label for="evidenceProfile" class="form-label">Perfil da Evidência</label>
+                                            <textarea id="evidenceProfile" class="form-control sequence-input mb-3" rows="5" placeholder="Insira o perfil da evidência..."></textarea>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <label for="suspectProfile" class="form-label">Perfil do Suspeito</label>
+                                            <textarea id="suspectProfile" class="form-control sequence-input mb-3" rows="5" placeholder="Insira o perfil do suspeito..."></textarea>
+                                            <button id="forensicTestBtn" class="btn dna-btn w-100">Realizar Análise Forense</button>
+                                        </div>
+                                    </div>
+                                    <div id="forensicResults" class="mt-4" style="display: none;">
+                                        <h5>Resultados da Análise Forense</h5>
+                                        <div id="forensicAlert" class="alert alert-secondary" role="alert">
+                                            <span id="forensicProbability"></span> | <span id="randomMatchProbability"></span>
+                                            <hr>
+                                            <p class="mb-0" id="forensicConclusion"></p>
+                                        </div>
+                                        <div class="position-relative mb-3" style="height: 200px;">
+                                            <canvas id="forensicChart"></canvas>
+                                        </div>
+                                        <h6>Comparação por Locus</h6>
+                                        <div class="table-responsive">
+                                            <table class="table table-sm table-bordered str-comparison-table">
+                                                <thead>
+                                                    <tr class="str-comparison-header">
+                                                        <th>Locus</th>
+                                                        <th>Evidência</th>
+                                                        <th>Suspeito</th>
+                                                        <th>Compatibilidade</th>
+                                                        <th>Freq. Genótipo</th>
+                                                    </tr>
+                                                </thead>
+                                                <tbody id="forensicComparisonTable">
+                                                    <!-- Forensic comparison rows -->
+                                                </tbody>
+                                            </table>
+                                        </div>
+                                    </div>
+                                </div>
+                                <!-- Database Panel -->
+                                <div class="tab-pane fade" id="database-panel" role="tabpanel">
+                                    <h4>Busca em Banco de Dados</h4>
+                                    <div class="row">
+                                        <div class="col-md-6">
+                                            <label for="queryProfile" class="form-label">Perfil para Busca</label>
+                                            <textarea id="queryProfile" class="form-control sequence-input mb-3" rows="5" placeholder="Insira o perfil para buscar..."></textarea>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <label for="minMatchThreshold" class="form-label">Limiar Mínimo de Correspondência: <span id="thresholdValue">80</span>%</label>
+                                            <input type="range" class="form-range" id="minMatchThreshold" min="50" max="100" value="80">
+                                            <button id="databaseSearchBtn" class="btn dna-btn w-100 mt-3">Buscar Perfis Similares</button>
+                                        </div>
+                                    </div>
+                                    <div id="databaseResults" class="mt-4" style="display: none;">
+                                        <h5>Resultados da Busca</h5>
+                                        <div id="noMatchesMessage" class="alert alert-warning" style="display: none;">Nenhum perfil correspondente encontrado no banco de dados com o limiar especificado.</div>
+                                        <div class="table-responsive">
+                                            <table class="table table-sm table-hover str-comparison-table">
+                                                <thead>
+                                                    <tr class="str-comparison-header">
+                                                        <th>ID Banco de Dados</th>
+                                                        <th>Correspondência</th>
+                                                        <th>Loci Correspondentes</th>
+                                                        <th>RMP Estimado</th>
+                                                        <th>Ações</th>
+                                                    </tr>
+                                                </thead>
+                                                <tbody id="databaseMatchesTable">
+                                                    <!-- Database matches -->
+                                                </tbody>
+                                            </table>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Technical Report -->
+                    <div class="dna-card card mb-4">
+                        <div class="card-header">
+                            <h3><i class="bi bi-file-earmark-text"></i> Relatório Técnico</h3>
+                        </div>
+                        <div class="card-body">
+                            <h4>Resumo</h4>
+                            <p id="reportSummary">Nenhum perfil analisado ainda.</p>
+                            <h4>Detalhes por Locus</h4>
+                            <div id="reportDetails">
+                                <p>Aguardando análise...</p>
+                            </div>
+                            <h4>Conclusões Preliminares</h4>
+                            <p id="reportConclusions">Aguardando análise...</p>
+                            <button id="exportBtn" class="btn btn-success mt-3"><i class="bi bi-file-pdf"></i> Exportar Relatório PDF</button>
+                        </div>
+                    </div>
+                </div>
+                
+                <div id="errorContainer" class="alert alert-danger mt-4" style="display: none;">
+                    <strong>Erro:</strong> <span id="errorMessage"></span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Banco de dados de marcadores STR e frequências alélicas (Exemplo simplificado - usar dados reais em produção)
+        const strDatabase = {
+            loci: {
+                'D3S1358': { alleles: [12, 13, 14, 15, 16, 17, 18, 19], freqs: { 'Caucasian': {15: 0.28, 16: 0.25, 17: 0.18, 14: 0.12, 18: 0.10}, 'African': {16: 0.30, 17: 0.22, 15: 0.15, 18: 0.12}, 'Asian': {15: 0.35, 16: 0.20, 14: 0.18} }, pd: 0.85, sizeRange: [110, 140] },
+                'vWA': { alleles: [11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21], freqs: { 'Caucasian': {17: 0.22, 16: 0.20, 18: 0.18, 15: 0.15, 14: 0.10}, 'African': {18: 0.25, 17: 0.20, 19: 0.15, 16: 0.12}, 'Asian': {17: 0.30, 16: 0.25, 18: 0.15} }, pd: 0.91, sizeRange: [150, 190] },
+                'FGA': { alleles: [17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30], freqs: { 'Caucasian': {22: 0.15, 23: 0.14, 24: 0.13, 21: 0.12, 25: 0.10}, 'African': {23: 0.18, 24: 0.16, 22: 0.14, 25: 0.11}, 'Asian': {24: 0.20, 22: 0.18, 23: 0.15} }, pd: 0.96, sizeRange: [200, 250] },
+                'D8S1179': { alleles: [8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18], freqs: { 'Caucasian': {13: 0.30, 14: 0.25, 12: 0.15, 15: 0.10}, 'African': {14: 0.35, 13: 0.20, 15: 0.15}, 'Asian': {13: 0.40, 12: 0.20, 14: 0.18} }, pd: 0.88, sizeRange: [120, 160] },
+                'D21S11': { alleles: [24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38], freqs: { 'Caucasian': {30: 0.20, 29: 0.18, 28: 0.15, '31.2': 0.10}, 'African': {29: 0.25, 30: 0.20, 28: 0.18}, 'Asian': {29: 0.30, 30: 0.22, 28: 0.16} }, pd: 0.94, sizeRange: [180, 240] },
+                'D18S51': { alleles: [9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27], freqs: { 'Caucasian': {15: 0.18, 16: 0.16, 17: 0.14, 14: 0.12}, 'African': {17: 0.20, 18: 0.18, 16: 0.15}, 'Asian': {15: 0.25, 16: 0.20, 17: 0.14} }, pd: 0.97, sizeRange: [280, 350] },
+                'D5S818': { alleles: [7, 8, 9, 10, 11, 12, 13, 14, 15, 16], freqs: { 'Caucasian': {11: 0.35, 12: 0.30, 10: 0.15}, 'African': {12: 0.40, 11: 0.25, 13: 0.15}, 'Asian': {11: 0.45, 12: 0.20, 10: 0.18} }, pd: 0.80, sizeRange: [130, 170] },
+                'D13S317': { alleles: [7, 8, 9, 10, 11, 12, 13, 14, 15], freqs: { 'Caucasian': {11: 0.25, 12: 0.22, 13: 0.18, 10: 0.15}, 'African': {12: 0.30, 11: 0.20, 13: 0.16}, 'Asian': {11: 0.35, 12: 0.25, 10: 0.14} }, pd: 0.89, sizeRange: [200, 240] },
+                'D7S820': { alleles: [6, 7, 8, 9, 10, 11, 12, 13, 14, 15], freqs: { 'Caucasian': {10: 0.28, 11: 0.24, 9: 0.16, 12: 0.12}, 'African': {10: 0.32, 11: 0.20, 8: 0.15}, 'Asian': {10: 0.38, 11: 0.22, 9: 0.15} }, pd: 0.90, sizeRange: [250, 290] },
+                'D16S539': { alleles: [5, 8, 9, 10, 11, 12, 13, 14, 15], freqs: { 'Caucasian': {11: 0.30, 12: 0.28, 13: 0.15, 10: 0.10}, 'African': {12: 0.35, 11: 0.25, 13: 0.18}, 'Asian': {11: 0.40, 12: 0.26, 13: 0.12} }, pd: 0.87, sizeRange: [220, 260] },
+                'TH01': { alleles: [4, 5, 6, 7, 8, 9, '9.3', 10, 11, 13.3], freqs: { 'Caucasian': {7: 0.25, 6: 0.22, '9.3': 0.20, 8: 0.15}, 'African': {6: 0.30, 7: 0.25, 8: 0.18}, 'Asian': {6: 0.35, 7: 0.28, '9.3': 0.15} }, pd: 0.84, sizeRange: [160, 190] },
+                'TPOX': { alleles: [6, 7, 8, 9, 10, 11, 12, 13], freqs: { 'Caucasian': {8: 0.50, 11: 0.25, 9: 0.10}, 'African': {8: 0.45, 9: 0.20, 10: 0.15}, 'Asian': {8: 0.60, 11: 0.15, 9: 0.10} }, pd: 0.70, sizeRange: [220, 250] },
+                'CSF1PO': { alleles: [6, 7, 8, 9, 10, 11, 12, 13, 14, 15], freqs: { 'Caucasian': {12: 0.30, 11: 0.25, 10: 0.20, 13: 0.10}, 'African': {10: 0.35, 11: 0.22, 12: 0.18}, 'Asian': {11: 0.40, 12: 0.25, 10: 0.15} }, pd: 0.86, sizeRange: [290, 330] },
+                'Amelogenin': { alleles: ['X', 'Y'], freqs: {}, pd: 0.5, sizeRange: [106, 112] } // Sex marker
+            },
+            populations: ['Caucasian', 'African', 'Asian', 'Hispanic'], // Example populations
+            // Simulated database entries for search functionality
+            database: [
+                { id: 'DB001', profile: { 'D3S1358': [15, 16], 'vWA': [17, 18], 'FGA': [22, 23] } },
+                { id: 'DB002', profile: { 'D3S1358': [15, 15], 'vWA': [16, 17], 'FGA': [21, 24] } },
+                { id: 'DB003', profile: { 'D3S1358': [16, 17], 'vWA': [18, 19], 'FGA': [23, 25] } },
+                { id: 'DB004', profile: { 'D3S1358': [15, 18], 'vWA': [16, 19], 'FGA': [19, 22] } }, // Match example
+            ]
+        };
+
+        // Elementos do DOM
+        const analyzeBtn = document.getElementById('analyzeBtn');
+        const uploadBtn = document.getElementById('uploadBtn');
+        const clearBtn = document.getElementById('clearBtn');
+        const exampleBtn = document.getElementById('exampleBtn');
+        const kinshipTestBtn = document.getElementById('kinshipTestBtn');
+        const forensicTestBtn = document.getElementById('forensicTestBtn');
+        const databaseSearchBtn = document.getElementById('databaseSearchBtn');
+        const exportBtn = document.getElementById('exportBtn');
+        const strProfileInput = document.getElementById('strProfile');
+        const strFileInput = document.getElementById('strFile');
+        const referenceProfileInput = document.getElementById('referenceProfile');
+        const evidenceProfileInput = document.getElementById('evidenceProfile');
+        const suspectProfileInput = document.getElementById('suspectProfile');
+        const queryProfileInput = document.getElementById('queryProfile');
+        const relationshipTypeSelect = document.getElementById('relationshipType');
+        const minMatchThresholdInput = document.getElementById('minMatchThreshold');
+        const thresholdValueSpan = document.getElementById('thresholdValue');
+
+        const resultsContainer = document.getElementById('resultsContainer');
+        const analysisResults = document.getElementById('analysisResults');
+        const loadingSpinner = document.getElementById('loadingSpinner');
+        const errorContainer = document.getElementById('errorContainer');
+        const errorMessageSpan = document.getElementById('errorMessage'); // Corrected ID
+        const progressBar = document.getElementById('progressBar');
+        const progressText = document.getElementById('progressText');
+
+        const totalLociSpan = document.getElementById('totalLoci');
+        const homozygositySpan = document.getElementById('homozygosity');
+        const discriminationPowerSpan = document.getElementById('discriminationPower');
+        const matchProbabilitySpan = document.getElementById('matchProbability');
+        const dataQualityBar = document.getElementById('dataQuality');
+        const qualityNotesSpan = document.getElementById('qualityNotes');
+        const strMarkersTableBody = document.getElementById('strMarkersTable');
+        const electropherogramDiv = document.getElementById('electropherogram');
+
+        const kinshipResultsDiv = document.getElementById('kinshipResults');
+        const kinshipAlertDiv = document.getElementById('kinshipAlert');
+        const kinshipProbabilitySpan = document.getElementById('kinshipProbability');
+        const likelihoodRatioSpan = document.getElementById('likelihoodRatio');
+        const kinshipConclusionSpan = document.getElementById('kinshipConclusion');
+        const kinshipComparisonTableBody = document.getElementById('kinshipComparisonTable');
+
+        const forensicResultsDiv = document.getElementById('forensicResults');
+        const forensicAlertDiv = document.getElementById('forensicAlert');
+        const forensicProbabilitySpan = document.getElementById('forensicProbability');
+        const randomMatchProbabilitySpan = document.getElementById('randomMatchProbability');
+        const forensicConclusionSpan = document.getElementById('forensicConclusion');
+        const forensicComparisonTableBody = document.getElementById('forensicComparisonTable');
+
+        const databaseResultsDiv = document.getElementById('databaseResults');
+        const databaseMatchesTableBody = document.getElementById('databaseMatchesTable');
+        const noMatchesMessageDiv = document.getElementById('noMatchesMessage');
+
+        const populationFrequencyTableBody = document.getElementById('populationFrequencyTable');
+
+        const technicalReportSummary = document.getElementById('reportSummary');
+        const technicalReportDetails = document.getElementById('reportDetails');
+        const technicalReportConclusions = document.getElementById('reportConclusions');
+
+        let currentAnalysisResults = null; // Store results for export
+        let alleleDistChart = null;
+        let kinshipChart = null;
+        let forensicChart = null;
+        let populationChart = null;
+
+        // --- Event Listeners ---
+        analyzeBtn.addEventListener('click', analyzeManualProfile);
+        uploadBtn.addEventListener('click', processFile);
+        clearBtn.addEventListener('click', clearInput);
+        exampleBtn.addEventListener('click', loadExample);
+        kinshipTestBtn.addEventListener('click', performKinshipAnalysis);
+        forensicTestBtn.addEventListener('click', performForensicAnalysis);
+        databaseSearchBtn.addEventListener('click', performDatabaseSearch);
+        exportBtn.addEventListener('click', exportReport);
+        minMatchThresholdInput.addEventListener('input', () => {
+            thresholdValueSpan.textContent = `${minMatchThresholdInput.value}%`;
+        });
+
+        // Listener para atualizar o status quando um arquivo é selecionado
+        strFileInput.addEventListener('change', () => {
+            if (strFileInput.files.length > 0) {
+                const fileName = strFileInput.files[0].name;
+                progressText.textContent = `Arquivo selecionado: ${fileName}`;
+                progressBar.style.width = '10%';
+                progressBar.setAttribute('aria-valuenow', 10);
+                progressBar.classList.add('progress-bar-striped', 'progress-bar-animated');
+                errorContainer.style.display = 'none'; // Hide previous errors
+            } else {
+                progressText.textContent = 'Aguardando arquivo...';
+                progressBar.style.width = '0%';
+                progressBar.setAttribute('aria-valuenow', 0);
+            }
+        });
+
+        // --- Parsing Functions ---
+        function parseStrProfile(text) {
+            const profile = {};
+            const lines = text.trim().split('\n');
+            let qualityScore = 100;
+            const notes = [];
+
+            lines.forEach(line => {
+                line = line.trim();
+                if (!line || line.startsWith('#')) return; // Skip empty lines and comments
+
+                const parts = line.split(/[:\s,;\t]+/); // Split by common delimiters
+                const locus = parts[0].toUpperCase();
+
+                if (strDatabase.loci[locus]) {
+                    const alleles = parts.slice(1).map(a => a.trim()).filter(a => a !== '');
+                    
+                    // Basic validation
+                    if (alleles.length === 0 || alleles.length > 2) {
+                        notes.push(`Locus ${locus}: Número inválido de alelos (${alleles.length}). Ignorando.`);
+                        qualityScore -= 5;
+                        return;
+                    }
+                    if (alleles.some(a => isNaN(parseFloat(a)) && a !== 'X' && a !== 'Y')) {
+                         // Allow non-numeric for Amelogenin, check others
+                         if (locus !== 'Amelogenin') {
+                            notes.push(`Locus ${locus}: Alelo(s) não numérico(s) inválido(s) (${alleles.join(',')}). Ignorando.`);
+                            qualityScore -= 5;
+                            return;
+                         }
+                    }
+
+                    profile[locus] = alleles.sort((a, b) => parseFloat(a) - parseFloat(b)); // Store sorted alleles
+                } else {
+                    notes.push(`Locus ${locus} desconhecido. Ignorando.`);
+                    qualityScore -= 2;
+                }
+            });
+
+            if (Object.keys(profile).length < 5) { // Require at least 5 valid loci
+                throw new Error('Perfil STR inválido ou com poucos loci válidos.');
+            }
+
+            return { profile, quality: Math.max(0, qualityScore), notes };
+        }
+
+        async function parseFileContent(file) {
+            const content = await readTextFile(file);
+            const fileName = file.name.toLowerCase();
+
+            if (fileName.endsWith('.csv')) {
+                return parseCsvStr(content);
+            } else if (fileName.endsWith('.xml')) {
+                // Implement XML parsing if needed
+                throw new Error('Formato XML ainda não suportado.');
+            } else if (fileName.endsWith('.fsa') || fileName.endsWith('.hid')) {
+                // Implement parsing for electropherogram data if needed
+                throw new Error('Formatos FSA/HID (dados brutos) ainda não suportados para parsing direto. Use formato de alelos (TXT/CSV).');
+            } else {
+                // Assume TXT, STR, DAT, CMF are plain text allele lists
+                return parseStrProfile(content);
+            }
+        }
+
+        function parseCsvStr(content) {
+            const profile = {};
+            const lines = content.trim().split('\n');
+            let qualityScore = 100;
+            const notes = [];
+
+            if (lines.length < 2) throw new Error('Arquivo CSV inválido ou vazio.');
+
+            const headers = lines[0].split(',').map(h => h.trim().toUpperCase());
+            const locusIndex = headers.findIndex(h => h.includes('LOCUS') || h.includes('MARKER'));
+            const alleleIndices = headers.map((h, i) => (h.includes('ALLELE') ? i : -1)).filter(i => i !== -1);
+
+            if (locusIndex === -1 || alleleIndices.length === 0) {
+                throw new Error('Cabeçalhos CSV não encontrados (LOCUS/MARKER e ALLELE).');
+            }
+
+            for (let i = 1; i < lines.length; i++) {
+                const values = lines[i].split(',');
+                if (values.length <= Math.max(locusIndex, ...alleleIndices)) continue;
+
+                const locus = values[locusIndex].trim().toUpperCase();
+                if (strDatabase.loci[locus]) {
+                    const alleles = alleleIndices.map(idx => values[idx].trim()).filter(a => a !== '');
+                    
+                     // Basic validation (similar to parseStrProfile)
+                    if (alleles.length === 0 || alleles.length > 2) {
+                        notes.push(`Locus ${locus}: Número inválido de alelos (${alleles.length}). Ignorando.`);
+                        qualityScore -= 5;
+                        continue;
+                    }
+                    if (alleles.some(a => isNaN(parseFloat(a)) && a !== 'X' && a !== 'Y')) {
+                         if (locus !== 'Amelogenin') {
+                            notes.push(`Locus ${locus}: Alelo(s) não numérico(s) inválido(s) (${alleles.join(',')}). Ignorando.`);
+                            qualityScore -= 5;
+                            continue;
+                         }
+                    }
+
+                    profile[locus] = alleles.sort((a, b) => parseFloat(a) - parseFloat(b));
+                } else {
+                     notes.push(`Locus ${locus} desconhecido. Ignorando.`);
+                     qualityScore -= 2;
+                }
+            }
+            
+            if (Object.keys(profile).length < 5) {
+                throw new Error('Perfil STR inválido ou com poucos loci válidos no CSV.');
+            }
+
+            return { profile, quality: Math.max(0, qualityScore), notes };
+        }
+
+        // --- Core Analysis Functions ---
+        function analyzeProfile(parsedData) {
+            const { profile, quality, notes } = parsedData;
+            const loci = Object.keys(profile);
+            const numLoci = loci.length;
+
+            let homozygotes = 0;
+            let totalPD = 1;
+            let totalRMP = 1;
+            const alleleCounts = {};
+
+            loci.forEach(locus => {
+                if (locus === 'Amelogenin') return; // Skip sex marker for these calculations
+                
+                const alleles = profile[locus];
+                const locusData = strDatabase.loci[locus];
+                const freqs = locusData.freqs['Caucasian']; // Use Caucasian as default for example
+
+                if (!freqs) return; // Skip if no frequency data
+
+                // Count alleles for distribution chart
+                alleles.forEach(allele => {
+                    alleleCounts[allele] = (alleleCounts[allele] || 0) + 1;
+                });
+
+                // Calculate homozygosity
+                if (alleles.length === 1 || alleles[0] === alleles[1]) {
+                    homozygotes++;
+                    const p = getAlleleFreq(alleles[0], freqs);
+                    totalRMP *= p * p;
+                } else {
+                    const p = getAlleleFreq(alleles[0], freqs);
+                    const q = getAlleleFreq(alleles[1], freqs);
+                    totalRMP *= 2 * p * q;
+                }
+                
+                // Combine PD (simplistic approach - real PD calculation is more complex)
+                totalPD *= (locusData.pd || 0.8); // Use stored PD or default
+            });
+
+            const homozygosity = numLoci > 0 ? ((homozygotes / loci.filter(l => l !== 'Amelogenin').length) * 100).toFixed(1) : 0;
+            const discriminationPower = (1 - totalRMP).toExponential(2); // Approximation
+            const matchProbability = totalRMP.toExponential(2);
+
+            return {
+                profile,
+                numLoci,
+                homozygosity,
+                discriminationPower,
+                matchProbability,
+                alleleCounts,
+                quality,
+                notes
+            };
+        }
+
+        function getAlleleFreq(allele, freqs) {
+            return freqs[allele] || 0.001; // Return small frequency for rare/unseen alleles
+        }
+
+        function calculateLocusLR(allelesChild, allelesParent, freqs, relationship) {
+            // Simplified LR calculation for Paternity/Maternity
+            if (relationship !== 'paternity' && relationship !== 'maternity') {
+                const shared = allelesChild.filter(a => allelesParent.includes(a)).length;
+                if (shared === 2) return 1 / getAlleleFreq(allelesChild[0], freqs); // Approximation
+                if (shared === 1) return 0.5 / getAlleleFreq(allelesChild.find(a => !allelesParent.includes(a)), freqs); // Approximation
+                return 0.01; // Low LR if no alleles shared
+            }
+
+            // Paternity/Maternity Calculation (Obligate Allele method simplified)
+            const [c1, c2] = allelesChild.length === 1 ? [allelesChild[0], allelesChild[0]] : allelesChild;
+            const [p1, p2] = allelesParent.length === 1 ? [allelesParent[0], allelesParent[0]] : allelesParent;
+
+            const freq_c1 = getAlleleFreq(c1, freqs);
+            const freq_c2 = getAlleleFreq(c2, freqs);
+
+            let numerator = 0;
+            if (p1 === c1 || p2 === c1) numerator += 0.5 * (1 / freq_c2);
+            if (p1 === c2 || p2 === c2) numerator += 0.5 * (1 / freq_c1);
+            if (c1 === c2 && (p1 === c1 || p2 === c1)) numerator = 1 / freq_c1;
+            if (!allelesParent.includes(c1) && !allelesParent.includes(c2)) return 0.0001; // Exclusion
+
+            const lr = numerator / 1; // Denominator is 1
+            return Math.max(0.0001, Math.min(lr, 10000)); // Cap LR values
+        }
+
+        function checkCompatibility(alleles1, alleles2, relationship) {
+            if (relationship === 'paternity' || relationship === 'maternity') {
+                const childAlleles = alleles1;
+                const parentAlleles = alleles2;
+                if (childAlleles.some(a => parentAlleles.includes(a))) {
+                    return '<span class="badge bg-success">Compatível</span>';
+                } else {
+                    return '<span class="badge bg-danger">Incompatível</span>';
+                }
+            } else {
+                const shared = alleles1.filter(a => alleles2.includes(a)).length;
+                if (shared > 0) {
+                    return `<span class="badge bg-info">Compartilhados: ${shared}</span>`;
+                } else {
+                    return '<span class="badge bg-secondary">Nenhum</span>';
+                }
+            }
+        }
+
+        // --- Forensic Analysis Functions ---
+        function calculateForensicMatch(evidenceData, suspectData) {
+            const evidenceProfile = evidenceData.profile;
+            const suspectProfile = suspectData.profile;
+            const commonLoci = Object.keys(evidenceProfile).filter(locus => suspectProfile[locus] && locus !== 'Amelogenin');
+
+            if (commonLoci.length < 10) {
+                throw new Error('Número insuficiente de loci comuns (<10) para análise forense confiável.');
+            }
+
+            let combinedRMP = 1;
+            let matchingLoci = 0;
+            const comparisonData = [];
+
+            commonLoci.forEach(locus => {
+                const allelesEvidence = evidenceProfile[locus].slice().sort();
+                const allelesSuspect = suspectProfile[locus].slice().sort();
+                const freqs = strDatabase.loci[locus].freqs['Caucasian']; // Default population
+                if (!freqs) return;
+
+                let locusRMP = 1;
+                let compatibility = '<span class="badge bg-danger">Incompatível</span>';
+                const isMatch = allelesEvidence.join(',') === allelesSuspect.join(',');
+
+                if (isMatch) {
+                    matchingLoci++;
+                    compatibility = '<span class="badge bg-success">Compatível</span>';
+                    if (allelesEvidence.length === 1 || allelesEvidence[0] === allelesEvidence[1]) { // Homozygote
+                        const p = getAlleleFreq(allelesEvidence[0], freqs);
+                        locusRMP = p * p;
+                    } else { // Heterozygote
+                        const p = getAlleleFreq(allelesEvidence[0], freqs);
+                        const q = getAlleleFreq(allelesEvidence[1], freqs);
+                        locusRMP = 2 * p * q;
+                    }
+                    combinedRMP *= locusRMP;
+                }
+
+                comparisonData.push({
+                    locus,
+                    allelesEvidence: allelesEvidence.join(', '),
+                    allelesSuspect: allelesSuspect.join(', '),
+                    compatibility,
+                    freq: isMatch ? locusRMP.toExponential(2) : '-'
+                });
+            });
+
+            const matchProbability = matchingLoci === commonLoci.length ? (1 / combinedRMP).toExponential(2) : '0'; // LR
+            const randomMatchProbability = combinedRMP.toExponential(2); // RMP
+
+            let conclusion = '';
+            let alertClass = 'alert-secondary';
+            if (matchingLoci === commonLoci.length) {
+                conclusion = `Os perfis são compatíveis em todos os ${commonLoci.length} loci analisados. A probabilidade de um indivíduo não relacionado selecionado aleatoriamente na população Caucasiana ter este perfil é de aproximadamente ${randomMatchProbability}. O LR favorece a hipótese de que o suspeito é a fonte da evidência.`;
+                alertClass = 'alert-success';
+            } else if (matchingLoci > commonLoci.length * 0.7) {
+                conclusion = `Os perfis são parcialmente compatíveis (${matchingLoci}/${commonLoci.length} loci). Pode indicar mistura de DNA ou relação de parentesco. RMP: ${randomMatchProbability}.`;
+                alertClass = 'alert-warning';
+            } else {
+                conclusion = `Os perfis são incompatíveis (${matchingLoci}/${commonLoci.length} loci). O suspeito é excluído como fonte da evidência.`;
+                alertClass = 'alert-danger';
+            }
+
+            return {
+                matchProbability,
+                randomMatchProbability,
+                conclusion,
+                alertClass,
+                comparisonData,
+                matchingLoci,
+                totalLoci: commonLoci.length
+            };
+        }
+
+        // --- Kinship Analysis Functions ---
+        function calculateKinship(profile1Data, profile2Data, relationship) {
+            const profile1 = profile1Data.profile;
+            const profile2 = profile2Data.profile;
+            const commonLoci = Object.keys(profile1).filter(locus => profile2[locus] && locus !== 'Amelogenin');
+
+            if (commonLoci.length < 10) {
+                throw new Error('Número insuficiente de loci comuns (<10) para análise de parentesco confiável.');
+            }
+
+            let combinedLR = 1;
+            const comparisonData = [];
+
+            commonLoci.forEach(locus => {
+                const alleles1 = profile1[locus];
+                const alleles2 = profile2[locus];
+                const freqs = strDatabase.loci[locus].freqs['Caucasian']; // Default population
+                if (!freqs) return;
+
+                const locusLR = calculateLocusLR(alleles1, alleles2, freqs, relationship);
+                combinedLR *= locusLR;
+
+                comparisonData.push({
+                    locus,
+                    alleles1: alleles1.join(', '),
+                    alleles2: alleles2.join(', '),
+                    compatibility: checkCompatibility(alleles1, alleles2, relationship),
+                    lr: locusLR.toFixed(2)
+                });
+            });
+
+            const kinshipIndex = combinedLR.toExponential(2);
+            const probability = ((combinedLR / (combinedLR + 1)) * 100).toFixed(2);
+
+            let conclusion = '';
+            let alertClass = 'alert-secondary';
+            if (probability > 99.9) {
+                conclusion = `A análise fornece suporte extremamente forte para a relação de ${relationship} (Probabilidade > 99.9%).`;
+                alertClass = 'alert-success';
+            } else if (probability > 99) {
+                conclusion = `A análise fornece suporte muito forte para a relação de ${relationship} (Probabilidade > 99%).`;
+                alertClass = 'alert-success';
+            } else if (probability > 90) {
+                conclusion = `A análise fornece suporte moderado para a relação de ${relationship} (Probabilidade > 90%).`;
+                alertClass = 'alert-warning';
+            } else if (probability < 10) {
+                conclusion = `A análise não suporta a relação de ${relationship} (Probabilidade < 10%).`;
+                alertClass = 'alert-danger';
+            } else {
+                conclusion = `Resultado inconclusivo para a relação de ${relationship} (${probability}%).`;
+                alertClass = 'alert-info';
+            }
+
+            return {
+                kinshipIndex,
+                probability,
+                conclusion,
+                alertClass,
+                comparisonData
+            };
+        }
+
+        // --- Database Search Functions ---
+        function searchDatabase(queryData, threshold) {
+            const queryProfile = queryData.profile;
+            const matches = [];
+            const minMatchPercent = threshold / 100;
+
+            strDatabase.database.forEach(entry => {
+                const entryProfile = entry.profile;
+                const commonLoci = Object.keys(queryProfile).filter(locus => entryProfile[locus] && locus !== 'Amelogenin');
+                
+                if (commonLoci.length === 0) return;
+
+                let matchingLociCount = 0;
+                let entryRMP = 1;
+
+                commonLoci.forEach(locus => {
+                    const allelesQuery = queryProfile[locus].slice().sort();
+                    const allelesEntry = entryProfile[locus].slice().sort();
+                    const freqs = strDatabase.loci[locus].freqs['Caucasian'];
+
+                    if (allelesQuery.join(',') === allelesEntry.join(',')) {
+                        matchingLociCount++;
+                        if (freqs) {
+                             if (allelesEntry.length === 1 || allelesEntry[0] === allelesEntry[1]) {
+                                const p = getAlleleFreq(allelesEntry[0], freqs);
+                                entryRMP *= p * p;
+                            } else {
+                                const p = getAlleleFreq(allelesEntry[0], freqs);
+                                const q = getAlleleFreq(allelesEntry[1], freqs);
+                                entryRMP *= 2 * p * q;
+                            }
+                        }
+                    }
+                });
+
+                const matchPercentage = (matchingLociCount / commonLoci.length) * 100;
+
+                if (matchPercentage >= threshold) {
+                    matches.push({
+                        id: entry.id,
+                        matchPercentage: matchPercentage.toFixed(1),
+                        matchingLoci: matchingLociCount,
+                        totalCommonLoci: commonLoci.length,
+                        rmp: entryRMP.toExponential(2)
+                    });
+                }
+            });
+
+            return matches.sort((a, b) => b.matchPercentage - a.matchPercentage); // Sort by best match
+        }
+
+        // --- Population Analysis Functions ---
+        function getPopulationFrequencies(analysisData) {
+            const profile = analysisData.profile;
+            const tableData = [];
+            const chartData = {}; // locus: { population: freq }
+
+            Object.entries(profile).forEach(([locus, alleles]) => {
+                const locusInfo = strDatabase.loci[locus];
+                if (!locusInfo || locus === 'Amelogenin') return;
+
+                const row = { locus, alleles: alleles.join(', ') };
+                const locusChartData = {};
+
+                strDatabase.populations.forEach(pop => {
+                    const freqs = locusInfo.freqs[pop];
+                    let genotypeFreq = '-';
+                    if (freqs) {
+                        if (alleles.length === 1 || alleles[0] === alleles[1]) {
+                            const p = getAlleleFreq(alleles[0], freqs);
+                            genotypeFreq = (p * p).toExponential(2);
+                        } else {
+                            const p = getAlleleFreq(alleles[0], freqs);
+                            const q = getAlleleFreq(alleles[1], freqs);
+                            genotypeFreq = (2 * p * q).toExponential(2);
+                        }
+                        // For chart: average allele frequency (simplified)
+                        locusChartData[pop] = alleles.reduce((sum, a) => sum + getAlleleFreq(a, freqs), 0) / alleles.length;
+                    } else {
+                         locusChartData[pop] = 0;
+                    }
+                    row[pop] = genotypeFreq;
+                });
+                tableData.push(row);
+                chartData[locus] = locusChartData;
+            });
+
+            return { table: tableData, chartData };
+        }
+
+        function getPopulationColor(population, alpha = 1) {
+            switch (population) {
+                case 'Caucasian': return `rgba(52, 152, 219, ${alpha})`; // Blue
+                case 'African': return `rgba(231, 76, 60, ${alpha})`;   // Red
+                case 'Asian': return `rgba(46, 204, 113, ${alpha})`;     // Green
+                case 'Hispanic': return `rgba(243, 156, 18, ${alpha})`;  // Yellow
+                default: return `rgba(149, 165, 166, ${alpha})`; // Grey
+            }
+        }
+
+        // --- Rendering Functions ---
+        function renderAlleleDistributionChart(alleleCounts) {
+            const ctx = document.getElementById('alleleDistributionChart').getContext('2d');
+            if (alleleDistChart) alleleDistChart.destroy();
+
+            const labels = Object.keys(alleleCounts).sort((a, b) => parseFloat(a) - parseFloat(b));
+            const data = labels.map(label => alleleCounts[label]);
+
+            alleleDistChart = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        label: 'Contagem de Alelos',
+                        data: data,
+                        backgroundColor: 'rgba(52, 152, 219, 0.7)',
+                        borderColor: 'rgba(52, 152, 219, 1)',
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            title: { display: true, text: 'Contagem' }
+                        },
+                        x: {
+                            title: { display: true, text: 'Alelo' }
+                        }
+                    },
+                    plugins: {
+                        legend: { display: false }
+                    }
+                }
+            });
+        }
+
+        function renderElectropherogram(profile) {
+            electropherogramDiv.innerHTML = ''; // Clear previous
+            const containerWidth = electropherogramDiv.clientWidth;
+            const containerHeight = electropherogramDiv.clientHeight;
+            const minSize = 100; // Min bp size
+            const maxSize = 350; // Max bp size
+            const sizeRange = maxSize - minSize;
+
+            Object.entries(profile).forEach(([locus, alleles]) => {
+                const locusData = strDatabase.loci[locus];
+                if (!locusData || !locusData.sizeRange) return;
+
+                alleles.forEach(allele => {
+                    // Approximate size based on allele number (highly simplified)
+                    const alleleNum = parseFloat(allele);
+                    if (isNaN(alleleNum) && allele !== 'X' && allele !== 'Y') return;
+                    
+                    let approxSize;
+                    if (allele === 'X') approxSize = 106;
+                    else if (allele === 'Y') approxSize = 112;
+                    else {
+                        const alleleIndex = locusData.alleles.indexOf(alleleNum);
+                        const minAllele = Math.min(...locusData.alleles);
+                        const maxAllele = Math.max(...locusData.alleles);
+                        const alleleRatio = (alleleNum - minAllele) / (maxAllele - minAllele || 1);
+                        approxSize = locusData.sizeRange[0] + alleleRatio * (locusData.sizeRange[1] - locusData.sizeRange[0]);
+                    }
+
+                    const position = ((approxSize - minSize) / sizeRange) * containerWidth;
+                    const peakHeight = containerHeight * (0.5 + Math.random() * 0.4); // Random height
+
+                    if (position >= 0 && position <= containerWidth) {
+                        const peak = document.createElement('div');
+                        peak.className = 'peak';
+                        peak.style.left = `${position}px`;
+                        peak.style.height = `${peakHeight}px`;
+                        
+                        const label = document.createElement('div');
+                        label.className = 'peak-label';
+                        label.textContent = `${locus}: ${allele}`;
+                        label.style.left = `${position + 3}px`;
+                        label.style.bottom = `${peakHeight + 2}px`;
+
+                        electropherogramDiv.appendChild(peak);
+                        electropherogramDiv.appendChild(label);
+                    }
+                });
+            });
+        }
+
+        function renderKinshipChart(results) {
+            const ctx = document.getElementById('kinshipChart').getContext('2d');
+            if (kinshipChart) kinshipChart.destroy();
+
+            kinshipChart = new Chart(ctx, {
+                type: 'pie',
+                data: {
+                    labels: ['Probabilidade de Parentesco', 'Probabilidade Contrária'],
+                    datasets: [{
+                        data: [results.probability, 100 - results.probability],
+                        backgroundColor: ['#27ae60', '#e74c3c'],
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { position: 'bottom' },
+                        title: { display: true, text: 'Probabilidade de Parentesco (%)' }
+                    }
+                }
+            });
+        }
+
+        function renderForensicChart(results) {
+            const ctx = document.getElementById('forensicChart').getContext('2d');
+            if (forensicChart) forensicChart.destroy();
+
+            forensicChart = new Chart(ctx, {
+                type: 'doughnut',
+                data: {
+                    labels: ['Loci Compatíveis', 'Loci Incompatíveis'],
+                    datasets: [{
+                        data: [results.matchingLoci, results.totalLoci - results.matchingLoci],
+                        backgroundColor: ['#27ae60', '#e74c3c'],
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { position: 'bottom' },
+                        title: { display: true, text: 'Compatibilidade Geral dos Loci' }
+                    }
+                }
+            });
+        }
+
+        function renderPopulationChart(populationChartData) {
+            const ctx = document.getElementById('populationChart').getContext('2d');
+            if (populationChart) populationChart.destroy();
+
+            const loci = Object.keys(populationChartData);
+            if (loci.length === 0) return;
+
+            const datasets = strDatabase.populations.map(pop => ({
+                label: pop,
+                data: loci.map(locus => populationChartData[locus][pop] || 0),
+                backgroundColor: getPopulationColor(pop, 0.7),
+                borderColor: getPopulationColor(pop, 1),
+                borderWidth: 1
+            }));
+
+            populationChart = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: loci,
+                    datasets: datasets
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            title: { display: true, text: 'Frequência Média Alélica (Estimada)' }
+                        },
+                        x: {
+                            title: { display: true, text: 'Locus' }
+                        }
+                    },
+                    plugins: {
+                        title: { display: true, text: 'Frequência Média dos Alelos por População' }
+                    }
+                }
+            });
+        }
+
+        // --- UI Update Functions ---
+        function displayResults(results) {
+            currentAnalysisResults = results; // Store for export
+
+            // Basic Info
+            totalLociSpan.textContent = results.numLoci;
+            homozygositySpan.textContent = results.homozygosity + '%';
+            discriminationPowerSpan.textContent = results.discriminationPower;
+            matchProbabilitySpan.textContent = results.matchProbability;
+            dataQualityBar.style.width = `${results.quality}%`;
+            dataQualityBar.textContent = `${results.quality}%`;
+            dataQualityBar.className = `progress-bar ${results.quality > 80 ? 'bg-success' : results.quality > 50 ? 'bg-warning' : 'bg-danger'}`;
+            qualityNotesSpan.innerHTML = results.notes.length > 0 ? `Notas: ${results.notes.join(', ')}` : 'Nenhuma observação.';
+
+            // Allele Distribution Chart
+            renderAlleleDistributionChart(results.alleleCounts);
+
+            // STR Markers Table
+            strMarkersTableBody.innerHTML = '';
+            Object.entries(results.profile).forEach(([locus, alleles]) => {
+                const locusData = strDatabase.loci[locus];
+                const freqs = locusData?.freqs['Caucasian']; // Default population
+                let genotypeFreq = '-';
+                let pd = locusData?.pd || '-';
+
+                if (freqs && locus !== 'Amelogenin') {
+                    if (alleles.length === 1 || alleles[0] === alleles[1]) { // Homozygote
+                        const p = getAlleleFreq(alleles[0], freqs);
+                        genotypeFreq = (p * p).toExponential(2);
+                    } else { // Heterozygote
+                        const p = getAlleleFreq(alleles[0], freqs);
+                        const q = getAlleleFreq(alleles[1], freqs);
+                        genotypeFreq = (2 * p * q).toExponential(2);
+                    }
+                }
+
+                const row = `
+                    <tr>
+                        <td class="str-locus-name"><strong>${locus}</strong></td>
+                        <td>${alleles.map(a => `<span class="str-allele">${a}</span>`).join('')}</td>
+                        <td>${genotypeFreq}</td>
+                        <td>${pd}</td>
+                        <td><button class="btn btn-sm btn-outline-primary view-locus" data-locus="${locus}">Ver</button></td>
+                    </tr>
+                `;
+                strMarkersTableBody.insertAdjacentHTML('beforeend', row);
+            });
+
+            // Electropherogram
+            renderElectropherogram(results.profile);
+
+            // Population Analysis
+            const populationData = getPopulationFrequencies(results);
+            populationFrequencyTableBody.innerHTML = '';
+            populationData.table.forEach(row => {
+                const tr = `
+                    <tr>
+                        <td class="str-locus-name">${row.locus}</td>
+                        <td>${row.alleles}</td>
+                        <td>${row.Caucasian || '-'}</td>
+                        <td>${row.African || '-'}</td>
+                        <td>${row.Asian || '-'}</td>
+                        <td>${row.Hispanic || '-'}</td>
+                    </tr>
+                `;
+                populationFrequencyTableBody.insertAdjacentHTML('beforeend', tr);
+            });
+            renderPopulationChart(populationData.chartData);
+
+            // Pre-fill comparison inputs
+            referenceProfileInput.value = strProfileInput.value; // For kinship
+            evidenceProfileInput.value = strProfileInput.value; // For forensic
+            queryProfileInput.value = strProfileInput.value; // For database
+
+            // Fill Technical Report
+            technicalReportSummary.textContent = `Análise de ${results.numLoci} marcadores STR. Qualidade estimada dos dados: ${results.quality}%. Probabilidade de Match Aleatório (RMP) estimada: ${results.matchProbability}.`;
+            technicalReportDetails.innerHTML = ''; // Clear previous
+            const detailsTable = document.createElement('table');
+            detailsTable.className = 'table table-sm table-bordered';
+            detailsTable.innerHTML = `<thead><tr><th>Locus</th><th>Alelos</th><th>Freq. Genótipo (Caucasiano)</th></tr></thead><tbody></tbody>`;
+            const tbody = detailsTable.querySelector('tbody');
+            Object.entries(results.profile).forEach(([locus, alleles]) => {
+                const locusData = strDatabase.loci[locus];
+                const freqs = locusData?.freqs['Caucasian'];
+                let genotypeFreq = '-';
+                 if (freqs && locus !== 'Amelogenin') {
+                    if (alleles.length === 1 || alleles[0] === alleles[1]) {
+                        genotypeFreq = Math.pow(getAlleleFreq(alleles[0], freqs), 2).toExponential(2);
+                    } else {
+                        genotypeFreq = (2 * getAlleleFreq(alleles[0], freqs) * getAlleleFreq(alleles[1], freqs)).toExponential(2);
+                    }
+                }
+                tbody.innerHTML += `<tr><td>${locus}</td><td>${alleles.join(', ')}</td><td>${genotypeFreq}</td></tr>`;
+            });
+            technicalReportDetails.appendChild(detailsTable);
+            technicalReportConclusions.textContent = `O perfil STR analisado apresenta um RMP de ${results.matchProbability}, indicando um alto poder de individualização. Análises adicionais de parentesco ou forense podem ser realizadas comparando este perfil com outros.`;
+
+            analysisResults.style.display = 'block';
+            resultsContainer.style.display = 'block';
+            kinshipResultsDiv.style.display = 'none'; // Hide comparison results initially
+            forensicResultsDiv.style.display = 'none';
+            databaseResultsDiv.style.display = 'none';
+        }
+
+        function displayKinshipResults(results) {
+            kinshipProbabilitySpan.innerHTML = `<strong>Índice de Parentesco (LR Combinado):</strong> ${results.kinshipIndex}`;
+            likelihoodRatioSpan.innerHTML = `<strong>Probabilidade de Parentesco:</strong> ${results.probability}%`;
+            kinshipConclusionSpan.textContent = results.conclusion;
+            kinshipAlertDiv.className = `alert ${results.alertClass}`;
+
+            kinshipComparisonTableBody.innerHTML = '';
+            results.comparisonData.forEach(row => {
+                const tr = `
+                    <tr>
+                        <td class="str-locus-name">${row.locus}</td>
+                        <td>${row.alleles1}</td>
+                        <td>${row.alleles2}</td>
+                        <td>${row.compatibility}</td>
+                        <td>${row.lr}</td>
+                    </tr>
+                `;
+                kinshipComparisonTableBody.insertAdjacentHTML('beforeend', tr);
+            });
+
+            renderKinshipChart(results);
+            kinshipResultsDiv.style.display = 'block';
+        }
+
+        function displayForensicResults(results) {
+            forensicProbabilitySpan.innerHTML = `<strong>Likelihood Ratio (LR):</strong> ${results.matchProbability}`;
+            randomMatchProbabilitySpan.innerHTML = `<strong>Probabilidade de Match Aleatório (RMP):</strong> ${results.randomMatchProbability}`;
+            forensicConclusionSpan.textContent = results.conclusion;
+            forensicAlertDiv.className = `alert ${results.alertClass}`;
+
+            forensicComparisonTableBody.innerHTML = '';
+            results.comparisonData.forEach(row => {
+                const tr = `
+                    <tr>
+                        <td class="str-locus-name">${row.locus}</td>
+                        <td>${row.allelesEvidence}</td>
+                        <td>${row.allelesSuspect}</td>
+                        <td>${row.compatibility}</td>
+                        <td>${row.freq}</td>
+                    </tr>
+                `;
+                forensicComparisonTableBody.insertAdjacentHTML('beforeend', tr);
+            });
+
+            renderForensicChart(results);
+            forensicResultsDiv.style.display = 'block';
+        }
+
+        function displayDatabaseResults(matches) {
+            databaseMatchesTableBody.innerHTML = '';
+            if (matches.length > 0) {
+                noMatchesMessageDiv.style.display = 'none';
+                matches.forEach(match => {
+                    const row = `
+                        <tr>
+                            <td>${match.id}</td>
+                            <td><span class="badge bg-success">${match.matchPercentage}%</span></td>
+                            <td>${match.matchingLoci} / ${match.totalCommonLoci}</td>
+                            <td>${match.rmp}</td>
+                            <td><button class="btn btn-sm btn-info">Detalhes</button></td> 
+                        </tr>
+                    `;
+                    databaseMatchesTableBody.insertAdjacentHTML('beforeend', row);
+                });
+            } else {
+                noMatchesMessageDiv.style.display = 'block';
+            }
+            databaseResultsDiv.style.display = 'block';
+        }
+
+        // --- Main Execution Functions ---
+        function analyzeManualProfile() {
+            const profileInput = strProfileInput.value.trim();
+            if (!profileInput) {
+                showError('Por favor, insira um perfil STR.');
+                return;
+            }
+
+            startAnalysis();
+            setTimeout(() => { // Simulate processing time
+                try {
+                    const parsedData = parseStrProfile(profileInput);
+                    const analysis = analyzeProfile(parsedData);
+                    displayResults(analysis);
+                } catch (error) {
+                    showError('Erro ao analisar perfil: ' + error.message);
+                } finally {
+                    endAnalysis();
+                }
+            }, 500);
+        }
+
+        async function processFile() {
+            if (!strFileInput.files.length) {
+                showError('Por favor, selecione um arquivo.');
+                return;
+            }
+            const file = strFileInput.files[0];
+            updateProgress(0, 'Iniciando processamento...');
+            startAnalysis();
+
+            try {
+                updateProgress(10, 'Lendo arquivo...');
+                const parsedData = await parseFileContent(file);
+                
+                updateProgress(70, 'Analisando perfil STR...');
+                const analysis = analyzeProfile(parsedData);
+                
+                updateProgress(90, 'Gerando relatório...');
+                displayResults(analysis);
+                
+                updateProgress(100, 'Completo!');
+            } catch (error) {
+                showError('Erro no processamento do arquivo: ' + error.message);
+                updateProgress(0, 'Erro!');
+            } finally {
+                setTimeout(() => endAnalysis(), 500);
+            }
+        }
+
+        function performKinshipAnalysis() {
+            const profile1Input = strProfileInput.value.trim(); // Assumes main profile is child/proband
+            const profile2Input = referenceProfileInput.value.trim();
+            const relationship = relationshipTypeSelect.value;
+
+            if (!profile1Input || !profile2Input) {
+                showError('Por favor, insira ambos os perfis STR para análise de parentesco.');
+                return;
+            }
+
+            startAnalysis();
+            setTimeout(() => {
+                try {
+                    const parsedData1 = parseStrProfile(profile1Input);
+                    const parsedData2 = parseStrProfile(profile2Input);
+                    const kinshipResults = calculateKinship(parsedData1, parsedData2, relationship);
+                    displayKinshipResults(kinshipResults);
+                } catch (error) {
+                    showError('Erro na análise de parentesco: ' + error.message);
+                } finally {
+                    endAnalysis();
+                }
+            }, 500);
+        }
+
+        function performForensicAnalysis() {
+            const evidenceInput = evidenceProfileInput.value.trim();
+            const suspectInput = suspectProfileInput.value.trim();
+
+            if (!evidenceInput || !suspectInput) {
+                showError('Por favor, insira ambos os perfis (evidência e suspeito) para análise forense.');
+                return;
+            }
+
+            startAnalysis();
+            setTimeout(() => {
+                try {
+                    const parsedEvidence = parseStrProfile(evidenceInput);
+                    const parsedSuspect = parseStrProfile(suspectInput);
+                    const forensicResults = calculateForensicMatch(parsedEvidence, parsedSuspect);
+                    displayForensicResults(forensicResults);
+                } catch (error) {
+                    showError('Erro na análise forense: ' + error.message);
+                } finally {
+                    endAnalysis();
+                }
+            }, 500);
+        }
+
+        function performDatabaseSearch() {
+            const queryInput = queryProfileInput.value.trim();
+            const threshold = parseInt(minMatchThresholdInput.value, 10);
+
+            if (!queryInput) {
+                showError('Por favor, insira um perfil para buscar no banco de dados.');
+                return;
+            }
+
+            startAnalysis();
+            setTimeout(() => {
+                try {
+                    const parsedQuery = parseStrProfile(queryInput);
+                    const matches = searchDatabase(parsedQuery, threshold);
+                    displayDatabaseResults(matches);
+                } catch (error) {
+                    showError('Erro na busca em banco de dados: ' + error.message);
+                } finally {
+                    endAnalysis();
+                }
+            }, 500);
+        }
+
+        // --- Utility Functions ---
+        function startAnalysis() {
+            resultsContainer.style.display = 'block';
+            analysisResults.style.display = 'none';
+            loadingSpinner.style.display = 'block';
+            errorContainer.style.display = 'none';
+            progressBar.classList.add('progress-bar-striped', 'progress-bar-animated');
+            // Disable buttons during analysis
+            analyzeBtn.disabled = true;
+            uploadBtn.disabled = true;
+            kinshipTestBtn.disabled = true;
+            forensicTestBtn.disabled = true;
+            databaseSearchBtn.disabled = true;
+        }
+
+        function endAnalysis() {
+            loadingSpinner.style.display = 'none';
+            progressBar.classList.remove('progress-bar-striped', 'progress-bar-animated');
+            // Re-enable buttons
+            analyzeBtn.disabled = false;
+            uploadBtn.disabled = false;
+            kinshipTestBtn.disabled = false;
+            forensicTestBtn.disabled = false;
+            databaseSearchBtn.disabled = false;
+        }
+
+        function showError(message) {
+            errorMessageSpan.textContent = message;
+            errorContainer.style.display = 'block';
+            resultsContainer.style.display = 'none'; // Hide results section on error
+        }
+
+        function clearInput() {
+            strProfileInput.value = '';
+            strFileInput.value = '';
+            referenceProfileInput.value = '';
+            evidenceProfileInput.value = '';
+            suspectProfileInput.value = '';
+            queryProfileInput.value = '';
+            resultsContainer.style.display = 'none';
+            analysisResults.style.display = 'none';
+            errorContainer.style.display = 'none';
+            progressText.textContent = 'Aguardando arquivo...';
+            progressBar.style.width = '0%';
+            progressBar.setAttribute('aria-valuenow', 0);
+            currentAnalysisResults = null;
+            // Clear charts
+            if (alleleDistChart) alleleDistChart.destroy();
+            if (kinshipChart) kinshipChart.destroy();
+            if (forensicChart) forensicChart.destroy();
+            if (populationChart) populationChart.destroy();
+        }
+
+        function loadExample() {
+            strProfileInput.value = 
+`D3S1358: 15, 18
+vWA: 16, 19
+FGA: 19, 22
+D8S1179: 12, 13
+D21S11: 29, 31.2
+D18S51: 14, 17
+D5S818: 11, 11
+D13S317: 11, 12
+D7S820: 8, 10
+D16S539: 11, 13
+TH01: 7, 9.3
+TPOX: 8, 11
+CSF1PO: 10, 12
+Amelogenin: X, Y`;
+            analyzeManualProfile(); // Automatically analyze the example
+        }
+
+        function readTextFile(file) {
+            return new Promise((resolve, reject) => {
+                const reader = new FileReader();
+                reader.onload = (event) => resolve(event.target.result);
+                reader.onerror = (error) => reject(error);
+                reader.readAsText(file);
+            });
+        }
+
+        function updateProgress(percent, text) {
+            progressBar.style.width = `${percent}%`;
+            progressBar.setAttribute('aria-valuenow', percent);
+            progressText.textContent = text;
+            if (percent < 100 && percent > 0) {
+                progressBar.classList.add('progress-bar-striped', 'progress-bar-animated');
+            } else {
+                progressBar.classList.remove('progress-bar-striped', 'progress-bar-animated');
+            }
+        }
+
+        function exportReport() {
+            if (!currentAnalysisResults) {
+                showError("Nenhum resultado de análise disponível para exportar.");
+                return;
+            }
+
+            const { jsPDF } = window.jspdf;
+            const doc = new jsPDF();
+            const profile = currentAnalysisResults.profile;
+            const date = new Date().toLocaleDateString('pt-BR');
+
+            doc.setFontSize(18);
+            doc.text('Relatório de Análise STR Forense', 105, 20, { align: 'center' });
+            doc.setFontSize(10);
+            doc.text(`Data: ${date}`, 105, 28, { align: 'center' });
+
+            doc.setFontSize(14);
+            doc.text('1. Resumo do Perfil', 14, 40);
+            doc.setFontSize(10);
+            doc.text(`- Número de Loci Analisados: ${currentAnalysisResults.numLoci}`, 20, 50);
+            doc.text(`- Homozigosidade Estimada: ${currentAnalysisResults.homozygosity}%`, 20, 58);
+            doc.text(`- Probabilidade de Match Aleatório (RMP - Caucasiano): ${currentAnalysisResults.matchProbability}`, 20, 66);
+            doc.text(`- Qualidade Estimada dos Dados: ${currentAnalysisResults.quality}%`, 20, 74);
+            if (currentAnalysisResults.notes.length > 0) {
+                 doc.text(`- Notas de Qualidade: ${currentAnalysisResults.notes.join('; ')}`, 20, 82, { maxWidth: 170 });
+            }
+
+            doc.setFontSize(14);
+            doc.text('2. Detalhes por Locus', 14, doc.autoTable ? doc.autoTable.previous.finalY + 15 : 100);
+            
+            const tableData = Object.entries(profile).map(([locus, alleles]) => {
+                const locusData = strDatabase.loci[locus];
+                const freqs = locusData?.freqs['Caucasian'];
+                let genotypeFreq = '-';
+                if (freqs && locus !== 'Amelogenin') {
+                    if (alleles.length === 1 || alleles[0] === alleles[1]) {
+                        const p = getAlleleFreq(alleles[0], freqs);
+                        genotypeFreq = (p * p).toExponential(2);
+                    } else {
+                        const p = getAlleleFreq(alleles[0], freqs);
+                        const q = getAlleleFreq(alleles[1], freqs);
+                        genotypeFreq = (2 * p * q).toExponential(2);
+                    }
+                }
+                return [locus, alleles.join(', '), genotypeFreq];
+            });
+
+            // Check if jsPDF AutoTable plugin is loaded (it's not by default)
+            if (doc.autoTable) {
+                 doc.autoTable({
+                    startY: doc.autoTable ? doc.autoTable.previous.finalY + 5 : 105,
+                    head: [['Locus', 'Alelos', 'Freq. Genótipo (Caucasiano)']],
+                    body: tableData,
+                    theme: 'grid',
+                    headStyles: { fillColor: [44, 62, 80] }, // Dark header
+                    styles: { fontSize: 8 },
+                    columnStyles: { 0: { fontStyle: 'bold' } }
+                });
+            } else {
+                // Fallback to basic text rendering if AutoTable is not available
+                let yPos = 105;
+                doc.setFontSize(8);
+                doc.text('Locus | Alelos | Freq. Genótipo (Caucasiano)', 20, yPos);
+                yPos += 5;
+                tableData.forEach(row => {
+                    if (yPos > 280) { // Basic page break
+                        doc.addPage();
+                        yPos = 20;
+                    }
+                    doc.text(`${row[0]} | ${row[1]} | ${row[2]}`, 20, yPos);
+                    yPos += 5;
+                });
+            }
+
+            // Add disclaimer
+            doc.setFontSize(9);
+            doc.setTextColor(100);
+            const finalY = doc.autoTable ? doc.autoTable.previous.finalY : yPos;
+            doc.text('Este relatório é gerado automaticamente para fins informativos e educacionais. Não substitui análise e interpretação por profissional qualificado.', 105, Math.max(finalY + 20, 270), { align: 'center', maxWidth: 180 });
+
+            doc.save('relatorio-str-analise.pdf');
+        }
+
+        // Inicialização
+        document.addEventListener('DOMContentLoaded', () => {
+            clearInput();
+        });
+    </script>
+</body>
+</html>
